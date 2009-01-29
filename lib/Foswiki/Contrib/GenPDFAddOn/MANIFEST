@@ -1,0 +1,8 @@
+data/System/GenPDFAddOn.txt 	Add-on topic
+data/System/GenPDFExampleTitleTopic.txt 	Example title topic
+data/System/GenPDFExampleHeaderFooterTopic.txt 	Example header and footer topic
+
+bin/genpdf 	Add-on script
+lib/Foswiki/Contrib/GenPDF.pm 	Add-on perl package
+lib/Foswiki/Contrib/GenPDFAddOn/Config.spec
+templates/view.genpdf.tmpl

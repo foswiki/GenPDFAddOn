@@ -10,9 +10,9 @@ BEGIN {
     }
 }
 
-use TWiki::Contrib::Build;
+use Foswiki::Contrib::Build;
 
-@GenPDFAddOnBuild::ISA = ( "TWiki::Contrib::Build" );
+@GenPDFAddOnBuild::ISA = ( "Foswiki::Contrib::Build" );
 
 sub new {
     my $class = shift;
