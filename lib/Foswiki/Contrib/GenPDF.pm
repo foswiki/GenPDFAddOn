@@ -24,7 +24,7 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details, published at 
+# GNU General Public License for more details, published at
 # http://www.gnu.org/copyleft/gpl.html
 
 =pod
@@ -66,7 +66,7 @@ $VERSION = '$Rev$';
 # of the version number in PLUGINDESCRIPTIONS.
 $RELEASE = 'Dakar';
 
-$| = 1; # Autoflush buffers
+$| = 1;    # Autoflush buffers
 
 our $query;
 our %tree;
@@ -82,15 +82,14 @@ returns modified $text.
 =cut
 
 sub _fixTags {
-   my ($text) = @_;
+    my ($text) = @_;
 
-   $text =~ s|%GENPDFADDON_BANNER%|$prefs{'banner'}|g;
-   $text =~ s|%GENPDFADDON_TITLE%|$prefs{'title'}|g;
-   $text =~ s|%GENPDFADDON_SUBTITLE%|$prefs{'subtitle'}|g;
-   
-   return $text;
+    $text =~ s|%GENPDFADDON_BANNER%|$prefs{'banner'}|g;
+    $text =~ s|%GENPDFADDON_TITLE%|$prefs{'title'}|g;
+    $text =~ s|%GENPDFADDON_SUBTITLE%|$prefs{'subtitle'}|g;
+
+    return $text;
 }
-
 
 =pod
 
@@ -102,58 +101,66 @@ returns it.
 =cut
 
 sub _getRenderedView {
-   my ($webName, $topic) = @_;
+    my ( $webName, $topic ) = @_;
 
-   my $text = Foswiki::Func::readTopicText($webName, $topic);
-   # FIXME - must be a better way?
-   if ($text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/) {
-      return "Sorry, this topic is not accessible at this time."
-         if $prefs{'recursive'}; # no point spoiling _everything_
-      Foswiki::Func::redirectCgiQuery($query, $text);
-   }
+    my $text = Foswiki::Func::readTopicText( $webName, $topic );
 
-   my $skin = $prefs{'cover'}.','.$prefs{'skin'};
-   my $tmpl = Foswiki::Func::readTemplate($prefs{'template'}, $skin) || '%TEXT%';
+    # FIXME - must be a better way?
+    if ( $text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/ ) {
+        return "Sorry, this topic is not accessible at this time."
+          if $prefs{'recursive'};    # no point spoiling _everything_
+        Foswiki::Func::redirectCgiQuery( $query, $text );
+    }
 
-   my( $start, $end );
-   if( $tmpl =~ m/^(.*)%TEXT%(.*)$/s ) {
-       my @starts = split( /%STARTTEXT%/, $1 );
-       if ( $#starts > 0 ) {
-           # we know that there is something before %STARTTEXT%
-           $start = $starts[0];
-           $text = $starts[1] . $text;
-       } else {
-           $start = $1;
-       }
-       my @ends = split( /%ENDTEXT%/, $2 );
-       if ( $#ends > 0 ) {
-           # we know that there is something after %ENDTEXT%
-           $text .= $ends[0];
-           $end = $ends[1];
-       } else {
-           $end = $2;
-       }
-   } else {
-       my @starts = split( /%STARTTEXT%/, $tmpl );
-       if ( $#starts > 0 ) {
-           # we know that there is something before %STARTTEXT%
-           $start = $starts[0];
-           $text = $starts[1];
-       } else {
-           $start = $tmpl;
-           $text = '';
-       }
-       $end = '';
-   }
+    my $skin = $prefs{'cover'} . ',' . $prefs{'skin'};
+    my $tmpl = Foswiki::Func::readTemplate( $prefs{'template'}, $skin )
+      || '%TEXT%';
 
-   
-   $text =~ s/\%TOC({.*?})?\%//g; # remove Foswiki TOC
-   $text = Foswiki::Func::expandCommonVariables($start.$text.$end, $topic, $webName);
-   $text = Foswiki::Func::renderText($text);
+    my ( $start, $end );
+    if ( $tmpl =~ m/^(.*)%TEXT%(.*)$/s ) {
+        my @starts = split( /%STARTTEXT%/, $1 );
+        if ( $#starts > 0 ) {
 
-   return $text;
+            # we know that there is something before %STARTTEXT%
+            $start = $starts[0];
+            $text  = $starts[1] . $text;
+        }
+        else {
+            $start = $1;
+        }
+        my @ends = split( /%ENDTEXT%/, $2 );
+        if ( $#ends > 0 ) {
+
+            # we know that there is something after %ENDTEXT%
+            $text .= $ends[0];
+            $end = $ends[1];
+        }
+        else {
+            $end = $2;
+        }
+    }
+    else {
+        my @starts = split( /%STARTTEXT%/, $tmpl );
+        if ( $#starts > 0 ) {
+
+            # we know that there is something before %STARTTEXT%
+            $start = $starts[0];
+            $text  = $starts[1];
+        }
+        else {
+            $start = $tmpl;
+            $text  = '';
+        }
+        $end = '';
+    }
+
+    $text =~ s/\%TOC({.*?})?\%//g;    # remove Foswiki TOC
+    $text = Foswiki::Func::expandCommonVariables( $start . $text . $end,
+        $topic, $webName );
+    $text = Foswiki::Func::renderText($text);
+
+    return $text;
 }
-
 
 =pod
 
@@ -168,16 +175,16 @@ was at the end).
 =cut
 
 sub _extractPdfSections {
-   my ($text) = @_;
+    my ($text) = @_;
 
-   # If no start tag, just return everything
-   return $text if ($text !~ /<!--\s*PDFSTART\s*-->/);
+    # If no start tag, just return everything
+    return $text if ( $text !~ /<!--\s*PDFSTART\s*-->/ );
 
-   my $output = "";
-   while ($text =~ /(.*?)<!--\s*PDFSTART\s*-->(.*?)<!--\s*PDFSTOP\s*-->/sg) {
-      $output .= $2;
-   }
-   return $output;
+    my $output = "";
+    while ( $text =~ /(.*?)<!--\s*PDFSTART\s*-->(.*?)<!--\s*PDFSTOP\s*-->/sg ) {
+        $output .= $2;
+    }
+    return $output;
 }
 
 =pod
@@ -191,50 +198,55 @@ values passed in from the query to have precendence.
 =cut
 
 sub _getHeaderFooterData {
-   my ($webName) = @_;
+    my ($webName) = @_;
 
-   # Get the header/footer data (if it exists)
-   my $text = "";
-   my $topic = $prefs{'hftopic'};
-   # Get a topic name without any whitespace
-   $topic =~ s|\s||g;
-   if ($prefs{'hftopic'}) {
-      $text = Foswiki::Func::readTopicText($webName, $topic);
-   }
-   # FIXME - must be a better way?
-   if ($text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/) {
-      Foswiki::Func::redirectCgiQuery($query, $text);
-   }
+    # Get the header/footer data (if it exists)
+    my $text  = "";
+    my $topic = $prefs{'hftopic'};
 
-   # Extract the content between the PDFSTART and PDFSTOP comment markers
-   $text = _extractPdfSections($text);
-   $text = _fixTags($text);
+    # Get a topic name without any whitespace
+    $topic =~ s|\s||g;
+    if ( $prefs{'hftopic'} ) {
+        $text = Foswiki::Func::readTopicText( $webName, $topic );
+    }
 
-   my $output = "";
-   # Expand common variables found between quotes. We have to jump through this loop hoop
-   # as the variables to expand occur inside html comments so just expanding variables in
-   # the full text doesn't do anything
-   for my $line (split(/(?=<)/, $text)) {
-      if ($line =~ /([^"]*")(.*)("[^"]*)/g) {
-         my $start = $1;
-         my $var = $2;
-         my $end = $3;
-         # Expand common variables and render
-         #print STDERR "var = '$var'\n"; #DEBUG
-         $var = Foswiki::Func::expandCommonVariables($var, $topic, $webName);
-         $var = Foswiki::Func::renderText($var);
-         $var =~ s/<.*?>|\n|\r//gs; # htmldoc can't use HTML tags in headers/footers
-         #print STDERR "var = '$var'\n"; #DEBUG
-         $output .= $start . $var . $end;
-      }
-      else {
-         $output .= $line;
-      }
-   }
+    # FIXME - must be a better way?
+    if ( $text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/ ) {
+        Foswiki::Func::redirectCgiQuery( $query, $text );
+    }
 
-   return $output;
+    # Extract the content between the PDFSTART and PDFSTOP comment markers
+    $text = _extractPdfSections($text);
+    $text = _fixTags($text);
+
+    my $output = "";
+
+# Expand common variables found between quotes. We have to jump through this loop hoop
+# as the variables to expand occur inside html comments so just expanding variables in
+# the full text doesn't do anything
+    for my $line ( split( /(?=<)/, $text ) ) {
+        if ( $line =~ /([^"]*")(.*)("[^"]*)/g ) {
+            my $start = $1;
+            my $var   = $2;
+            my $end   = $3;
+
+            # Expand common variables and render
+            #print STDERR "var = '$var'\n"; #DEBUG
+            $var =
+              Foswiki::Func::expandCommonVariables( $var, $topic, $webName );
+            $var = Foswiki::Func::renderText($var);
+            $var =~ s/<.*?>|\n|\r//gs
+              ;    # htmldoc can't use HTML tags in headers/footers
+                   #print STDERR "var = '$var'\n"; #DEBUG
+            $output .= $start . $var . $end;
+        }
+        else {
+            $output .= $line;
+        }
+    }
+
+    return $output;
 }
-
 
 =pod
 
@@ -247,65 +259,69 @@ values passed in from the query to have precendence.
 =cut
 
 sub _createTitleFile {
-   my ($webName) = @_;
+    my ($webName) = @_;
 
-   my $text = '';
-   my $topic = $prefs{'titletopic'};
-   # Get a topic name without any whitespace
-   $topic =~ s|\s||g;
-   # Get the title topic (if it exists)
-   if ($prefs{'titletopic'}) {
-      $text .= Foswiki::Func::readTopicText($webName, $topic);
-   }
-   # FIXME - must be a better way?
-   if ($text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/) {
-      Foswiki::Func::redirectCgiQuery($query, $text);
-   }
+    my $text  = '';
+    my $topic = $prefs{'titletopic'};
 
-   # Extract the content between the PDFSTART and PDFSTOP comment markers
-   $text = _extractPdfSections($text);
-   $text = _fixTags($text);
+    # Get a topic name without any whitespace
+    $topic =~ s|\s||g;
 
-   # Now render the rest of the topic
-   $text = Foswiki::Func::expandCommonVariables($text, $topic, $webName);
-   $text = Foswiki::Func::renderText($text);
+    # Get the title topic (if it exists)
+    if ( $prefs{'titletopic'} ) {
+        $text .= Foswiki::Func::readTopicText( $webName, $topic );
+    }
 
-   # FIXME - send to _fixHtml
-   # As of HtmlDoc 1.8.24, it only handles HTML3.2 elements so
-   # convert some common HTML4.x elements to similar HTML3.2 elements
-   $text =~ s/&ndash;/&shy;/g;
-   $text =~ s/&[lr]dquo;/"/g;
-   $text =~ s/&[lr]squo;/'/g;
-   $text =~ s/&brvbar;/|/g;
+    # FIXME - must be a better way?
+    if ( $text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/ ) {
+        Foswiki::Func::redirectCgiQuery( $query, $text );
+    }
 
-   # convert FoswikiNewLinks to normal text
-   # FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
-   # BUG: this will match _everything_ from the first open span, to the last end span, losing alot of content.
-   #$text =~ s/<span class="foswikiNewLink".*?>([\w\s]+)<.*?\/span>/$1/gs;
+    # Extract the content between the PDFSTART and PDFSTOP comment markers
+    $text = _extractPdfSections($text);
+    $text = _fixTags($text);
 
-   # Fix the image tags to use hard-desk path range than url paths.
-   # This is needed in case wiki requires read authentication like SSL client
-   # certificates.
-   # Fully qualify any unqualified URLs (to make it portable to another host)
-   my $url = Foswiki::Func::getUrlHost();
-   my $pdir = Foswiki::Func::getPubDir();
-   my $purlp = Foswiki::Func::getPubUrlPath();
+    # Now render the rest of the topic
+    $text = Foswiki::Func::expandCommonVariables( $text, $topic, $webName );
+    $text = Foswiki::Func::renderText($text);
 
-   $text =~ s!<img(.*?) src="($url)?$purlp!<img$1 src="$pdir\/!sgi;
-   $text =~ s/<a(.*?) href="(?!#)\//<a$1 href="$url\//sgi;
+    # FIXME - send to _fixHtml
+    # As of HtmlDoc 1.8.24, it only handles HTML3.2 elements so
+    # convert some common HTML4.x elements to similar HTML3.2 elements
+    $text =~ s/&ndash;/&shy;/g;
+    $text =~ s/&[lr]dquo;/"/g;
+    $text =~ s/&[lr]squo;/'/g;
+    $text =~ s/&brvbar;/|/g;
 
-   # Save it to a file
-   my ($fh, $name) = tempfile('GenPDFAddOnXXXXXXXXXX',
-                               DIR => File::Spec->tmpdir(),
-	                       SUFFIX => '.html');
-   open $fh, ">$name";
+# convert FoswikiNewLinks to normal text
+# FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
+# BUG: this will match _everything_ from the first open span, to the last end span, losing alot of content.
+#$text =~ s/<span class="foswikiNewLink".*?>([\w\s]+)<.*?\/span>/$1/gs;
 
-   print $fh $text;
+    # Fix the image tags to use hard-desk path range than url paths.
+    # This is needed in case wiki requires read authentication like SSL client
+    # certificates.
+    # Fully qualify any unqualified URLs (to make it portable to another host)
+    my $url   = Foswiki::Func::getUrlHost();
+    my $pdir  = Foswiki::Func::getPubDir();
+    my $purlp = Foswiki::Func::getPubUrlPath();
 
-   close $fh; 
-   return $name;
+    $text =~ s!<img(.*?) src="($url)?$purlp!<img$1 src="$pdir\/!sgi;
+    $text =~ s/<a(.*?) href="(?!#)\//<a$1 href="$url\//sgi;
+
+    # Save it to a file
+    my ( $fh, $name ) = tempfile(
+        'GenPDFAddOnXXXXXXXXXX',
+        DIR    => File::Spec->tmpdir(),
+        SUFFIX => '.html'
+    );
+    open $fh, ">$name";
+
+    print $fh $text;
+
+    close $fh;
+    return $name;
 }
-
 
 =pod
 
@@ -315,20 +331,22 @@ Functionality from original PDF script.
 
 =cut
 
-sub _shiftHeaders{
-   my ($html) = @_;
+sub _shiftHeaders {
+    my ($html) = @_;
 
-   if ($prefs{'shift'} =~ /^[+-]?\d+$/) {
-      my $newHead;
-      # You may want to modify next line if you do not want to shift _all_ headers.
-      # I leave for example all header that contain a digit folowed by a point.
-      # Look like this:
-      # $html =~ s&<h(\d)>((?:(?!(<h\d>|\d\.)).)*)</h\d>&'<h'.($newHead = ($1+$sh)>6?6:($1+$sh)<1?1:($1+$sh)).'>'.$2.'</h'.($newHead).'>'&gse;
-      # NOTE - htmldoc allows headers up to <h15>
-      $html =~ s|<h(\d)>((?:(?!<h\d>).)*)</h\d>|'<h'.($newHead = ($1+$prefs{'shift'})>15?15:($1+$prefs{'shift'})<1?1:($1+$prefs{'shift'})).'>'.$2.'</h'.($newHead).'>'|gsei;
-   }
+    if ( $prefs{'shift'} =~ /^[+-]?\d+$/ ) {
+        my $newHead;
 
-   return $html;
+# You may want to modify next line if you do not want to shift _all_ headers.
+# I leave for example all header that contain a digit folowed by a point.
+# Look like this:
+# $html =~ s&<h(\d)>((?:(?!(<h\d>|\d\.)).)*)</h\d>&'<h'.($newHead = ($1+$sh)>6?6:($1+$sh)<1?1:($1+$sh)).'>'.$2.'</h'.($newHead).'>'&gse;
+# NOTE - htmldoc allows headers up to <h15>
+        $html =~
+s|<h(\d)>((?:(?!<h\d>).)*)</h\d>|'<h'.($newHead = ($1+$prefs{'shift'})>15?15:($1+$prefs{'shift'})<1?1:($1+$prefs{'shift'})).'>'.$2.'</h'.($newHead).'>'|gsei;
+    }
+
+    return $html;
 }
 
 =pod
@@ -342,88 +360,107 @@ isn't present. Returns the modified html.
 =cut
 
 sub _fixHtml {
-   my ($html, $topic, $webName, $refTopics) = @_;
-   my $title = Foswiki::Func::expandCommonVariables($prefs{'title'}, $topic, $webName);
-   $title = Foswiki::Func::renderText($title);
-   $title =~ s/<.*?>//gs;
-   #print STDERR "title: '$title'\n"; # DEBUG
+    my ( $html, $topic, $webName, $refTopics ) = @_;
+    my $title =
+      Foswiki::Func::expandCommonVariables( $prefs{'title'}, $topic, $webName );
+    $title = Foswiki::Func::renderText($title);
+    $title =~ s/<.*?>//gs;
 
-   # Extract the content between the PDFSTART and PDFSTOP comment markers
-   $html = _extractPdfSections($html);
+    #print STDERR "title: '$title'\n"; # DEBUG
 
-   # remove <nop> tags
-   $html =~ s/<nop>//g;
+    # Extract the content between the PDFSTART and PDFSTOP comment markers
+    $html = _extractPdfSections($html);
 
-   # remove all page breaks
-   # FIXME - why remove a forced page break? Instead insert a <!-- PAGE BREAK -->
-   #         otherwise dangling </p> is not cleaned up
-   $html =~ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
+    # remove <nop> tags
+    $html =~ s/<nop>//g;
 
-   # remove %META stuff
-   $html =~ s/%META:\w+{.*?}%//gs;
+  # remove all page breaks
+  # FIXME - why remove a forced page break? Instead insert a <!-- PAGE BREAK -->
+  #         otherwise dangling </p> is not cleaned up
+    $html =~
+s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 
-   # Prepend META tags for PDF meta info - may be redefined later by topic text
-   my $meta = '<META NAME="AUTHOR" CONTENT="%REVINFO{format="$wikiusername"}%"/>'; # Specifies the document author.
-   $meta .= '<META NAME="COPYRIGHT" CONTENT="%WEBCOPYRIGHT%"/>'; # Specifies the document copyright.
-   $meta .= '<META NAME="DOCNUMBER" CONTENT="%REVINFO{format="r1.$rev - $date"}%"/>'; # Specifies the document number.
-   $meta .= '<META NAME="GENERATOR" CONTENT="%WIKITOOLNAME% %WIKIVERSION%"/>'; # Specifies the application that generated the HTML file.
-   $meta .= '<META NAME="KEYWORDS" CONTENT="'. $prefs{'keywords'} .'"/>'; # Specifies document search keywords.
-   $meta .= '<META NAME="SUBJECT" CONTENT="'. $prefs{'subject'} .'"/>'; # Specifies document subject.
-   $meta = Foswiki::Func::expandCommonVariables($meta, $topic, $webName);
-   $meta =~ s/<(?!META).*?>//g; # remove any tags from inside the <META />
-   $meta = Foswiki::Func::renderText($meta);
-   $meta =~ s/<(?!META).*?>//g; # remove any tags from inside the <META />
-   # FIXME - renderText converts the <META> tags to &lt;META&gt;
-   # if the CONTENT contains anchor tags (trying to be XHTML compliant)
-   $meta =~ s/&lt;/</g;
-   $meta =~ s/&gt;/>/g;
-   #print STDERR "meta: '$meta'\n"; # DEBUG
+    # remove %META stuff
+    $html =~ s/%META:\w+{.*?}%//gs;
 
-   $html = _shiftHeaders($html);
+    # Prepend META tags for PDF meta info - may be redefined later by topic text
+    my $meta =
+      '<META NAME="AUTHOR" CONTENT="%REVINFO{format="$wikiusername"}%"/>'
+      ;    # Specifies the document author.
+    $meta .= '<META NAME="COPYRIGHT" CONTENT="%WEBCOPYRIGHT%"/>'
+      ;    # Specifies the document copyright.
+    $meta .=
+      '<META NAME="DOCNUMBER" CONTENT="%REVINFO{format="r1.$rev - $date"}%"/>'
+      ;    # Specifies the document number.
+    $meta .= '<META NAME="GENERATOR" CONTENT="%WIKITOOLNAME% %WIKIVERSION%"/>'
+      ;    # Specifies the application that generated the HTML file.
+    $meta .=
+        '<META NAME="KEYWORDS" CONTENT="'
+      . $prefs{'keywords'}
+      . '"/>';    # Specifies document search keywords.
+    $meta .=
+        '<META NAME="SUBJECT" CONTENT="'
+      . $prefs{'subject'}
+      . '"/>';    # Specifies document subject.
+    $meta = Foswiki::Func::expandCommonVariables( $meta, $topic, $webName );
+    $meta =~ s/<(?!META).*?>//g;    # remove any tags from inside the <META />
+    $meta = Foswiki::Func::renderText($meta);
+    $meta =~ s/<(?!META).*?>//g;    # remove any tags from inside the <META />
+         # FIXME - renderText converts the <META> tags to &lt;META&gt;
+         # if the CONTENT contains anchor tags (trying to be XHTML compliant)
+    $meta =~ s/&lt;/</g;
+    $meta =~ s/&gt;/>/g;
 
-   # Insert an <h1> header if one isn't present
-   # and a target (after the <h1>) for this topic so it gets a bookmark
-   if ($html !~ /<h1>/is) {
-      $html = "<h1>$topic</h1><a name=\"$topic\"> </a>$html";
-   } else {
-      $html = "<a name=\"$topic\"> </a>$html";
-   }
-   # htmldoc reads <title> for PDF Title meta-info
-   $html = "<head><title>$title</title>\n$meta</head>\n<body>$html</body>";
+    #print STDERR "meta: '$meta'\n"; # DEBUG
 
-   # As of HtmlDoc 1.8.24, it only handles HTML3.2 elements so
-   # convert some common HTML4.x elements to similar HTML3.2 elements
-   $html =~ s/&ndash;/&shy;/g;
-   $html =~ s/&[lr]dquo;/"/g;
-   $html =~ s/&[lr]squo;/'/g;
-   $html =~ s/&brvbar;/|/g;
+    $html = _shiftHeaders($html);
 
-   # convert FoswikiNewLinks to normal text
-   # FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
-   # BUG: this will match _everything_ from the first open span, to the last end span, losing alot of content.
-   #$html =~ s/<span class="foswikiNewLink".*?>([\w\s]+)<.*?\/span>/$1/gs;
+    # Insert an <h1> header if one isn't present
+    # and a target (after the <h1>) for this topic so it gets a bookmark
+    if ( $html !~ /<h1>/is ) {
+        $html = "<h1>$topic</h1><a name=\"$topic\"> </a>$html";
+    }
+    else {
+        $html = "<a name=\"$topic\"> </a>$html";
+    }
 
-   # Fix the image tags to use hard-disk path rather than relative url paths for
-   # images.  Needed if wiki requires authentication like SSL client certifcates.
-   # Fully qualify any unqualified URLs (to make it portable to another host)
-   my $url = Foswiki::Func::getUrlHost();
-   my $pdir = Foswiki::Func::getPubDir();
-   my $purlp = Foswiki::Func::getPubUrlPath();
+    # htmldoc reads <title> for PDF Title meta-info
+    $html = "<head><title>$title</title>\n$meta</head>\n<body>$html</body>";
 
-   $html =~ s!<img(.*?) src="($url)?$purlp!<img$1 src="$pdir\/!gi;
-   $html =~ s/<a(.*?) href="\//<a$1 href="$url\//gi;
-   # link internally if we include the topic
-   for my $wikiword (@$refTopics) {
-      $url = Foswiki::Func::getScriptUrl($webName, $wikiword, 'view');
-      $html =~ s/([\'\"])$url/$1#$wikiword/g; # not anchored
-      $html =~ s/$url(#\w*)/$1/g; # anchored
-   }
+    # As of HtmlDoc 1.8.24, it only handles HTML3.2 elements so
+    # convert some common HTML4.x elements to similar HTML3.2 elements
+    $html =~ s/&ndash;/&shy;/g;
+    $html =~ s/&[lr]dquo;/"/g;
+    $html =~ s/&[lr]squo;/'/g;
+    $html =~ s/&brvbar;/|/g;
 
-   # change <li type=> to <ol type=> 
-   $html =~ s/<ol>\s+<li\s+type="([AaIi])">/<ol type="$1">\n<li>/g;
-   $html =~ s/<li\s+type="[AaIi]">/<li>/g;
+# convert FoswikiNewLinks to normal text
+# FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
+# BUG: this will match _everything_ from the first open span, to the last end span, losing alot of content.
+#$html =~ s/<span class="foswikiNewLink".*?>([\w\s]+)<.*?\/span>/$1/gs;
 
-   return $html;
+  # Fix the image tags to use hard-disk path rather than relative url paths for
+  # images.  Needed if wiki requires authentication like SSL client certifcates.
+  # Fully qualify any unqualified URLs (to make it portable to another host)
+    my $url   = Foswiki::Func::getUrlHost();
+    my $pdir  = Foswiki::Func::getPubDir();
+    my $purlp = Foswiki::Func::getPubUrlPath();
+
+    $html =~ s!<img(.*?) src="($url)?$purlp!<img$1 src="$pdir\/!gi;
+    $html =~ s/<a(.*?) href="\//<a$1 href="$url\//gi;
+
+    # link internally if we include the topic
+    for my $wikiword (@$refTopics) {
+        $url = Foswiki::Func::getScriptUrl( $webName, $wikiword, 'view' );
+        $html =~ s/([\'\"])$url/$1#$wikiword/g;    # not anchored
+        $html =~ s/$url(#\w*)/$1/g;                # anchored
+    }
+
+    # change <li type=> to <ol type=>
+    $html =~ s/<ol>\s+<li\s+type="([AaIi])">/<ol type="$1">\n<li>/g;
+    $html =~ s/<li\s+type="[AaIi]">/<li>/g;
+
+    return $html;
 }
 
 =pod
@@ -439,135 +476,227 @@ See the GenPDFAddOn topic for a description of the possible preference values an
 =cut
 
 sub _getPrefs {
-   # HTMLDOC location
-   # $Foswiki::htmldocCmd must be set in Foswiki.cfg
 
-  use constant BANNER => "";
-  use constant TITLE => "";
-  use constant SUBTITLE => "";
-  use constant HEADERTOPIC => "";
-  use constant TITLETOPIC => "";
-  use constant SKIN => "pattern";
-  use constant COVER => "print";
-  use constant TEMPLATE => "view";
-  use constant RECURSIVE => undef;
-  use constant FORMAT => "pdf14";
-  use constant TOCLEVELS => 5;
-  use constant PAGESIZE => "a4";
-  use constant ORIENTATION => "portrait";
-  use constant WIDTH => 860;
-  use constant HEADERSHIFT => 0;
-  use constant KEYWORDS => '%FORMFIELD{"KeyWords"}%';
-  use constant SUBJECT => '%FORMFIELD{"TopicHeadline"}%';
-  use constant TOCHEADER => "...";
-  use constant TOCFOOTER => "..i";
-  use constant HEADER => undef;
-  use constant FOOTER => undef;
-  use constant HEADFOOTFONT => "";
-  use constant HEADFOOTSIZE => undef;
-  use constant BODYIMAGE => "";
-  use constant LOGOIMAGE => "";
-  use constant NUMBEREDTOC => undef;
-  use constant DUPLEX => undef;
-  use constant PERMISSIONS => undef;
-  use constant MARGINS => undef;
-  use constant BODYCOLOR => undef;
-  use constant STRUCT => 'book';
+    # HTMLDOC location
+    # $Foswiki::htmldocCmd must be set in Foswiki.cfg
 
+    use constant BANNER       => "";
+    use constant TITLE        => "";
+    use constant SUBTITLE     => "";
+    use constant HEADERTOPIC  => "";
+    use constant TITLETOPIC   => "";
+    use constant SKIN         => "pattern";
+    use constant COVER        => "print";
+    use constant TEMPLATE     => "view";
+    use constant RECURSIVE    => undef;
+    use constant FORMAT       => "pdf14";
+    use constant TOCLEVELS    => 5;
+    use constant PAGESIZE     => "a4";
+    use constant ORIENTATION  => "portrait";
+    use constant WIDTH        => 860;
+    use constant HEADERSHIFT  => 0;
+    use constant KEYWORDS     => '%FORMFIELD{"KeyWords"}%';
+    use constant SUBJECT      => '%FORMFIELD{"TopicHeadline"}%';
+    use constant TOCHEADER    => "...";
+    use constant TOCFOOTER    => "..i";
+    use constant HEADER       => undef;
+    use constant FOOTER       => undef;
+    use constant HEADFOOTFONT => "";
+    use constant HEADFOOTSIZE => undef;
+    use constant BODYIMAGE    => "";
+    use constant LOGOIMAGE    => "";
+    use constant NUMBEREDTOC  => undef;
+    use constant DUPLEX       => undef;
+    use constant PERMISSIONS  => undef;
+    use constant MARGINS      => undef;
+    use constant BODYCOLOR    => undef;
+    use constant STRUCT       => 'book';
 
-   # header/footer topic
-   $prefs{'hftopic'} = $query->param('pdfheadertopic') || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERTOPIC") || HEADERTOPIC;
+    # header/footer topic
+    $prefs{'hftopic'} = $query->param('pdfheadertopic')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERTOPIC")
+      || HEADERTOPIC;
 
-   # title topic
-   $prefs{'titletopic'} = $query->param('pdftitletopic') || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLETOPIC") || TITLETOPIC;
+    # title topic
+    $prefs{'titletopic'} = $query->param('pdftitletopic')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLETOPIC")
+      || TITLETOPIC;
 
-   $prefs{'banner'} = $query->param('pdfbanner') || Foswiki::Func::getPreferencesValue("GENPDFADDON_BANNER");
-   $prefs{'banner'} = BANNER unless defined $prefs{'banner'};
+    $prefs{'banner'} = $query->param('pdfbanner')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_BANNER");
+    $prefs{'banner'} = BANNER unless defined $prefs{'banner'};
 
-   $prefs{'title'} = $query->param('pdftitle') || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLE");
-   $prefs{'title'} = TITLE unless defined $prefs{'title'};
+    $prefs{'title'} = $query->param('pdftitle')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLE");
+    $prefs{'title'} = TITLE unless defined $prefs{'title'};
 
-   $prefs{'subtitle'} = $query->param('pdfsubtitle') || Foswiki::Func::getPreferencesValue("GENPDFADDON_SUBTITLE");
-   $prefs{'subtitle'} = SUBTITLE unless defined $prefs{'subtitle'};
+    $prefs{'subtitle'} = $query->param('pdfsubtitle')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_SUBTITLE");
+    $prefs{'subtitle'} = SUBTITLE unless defined $prefs{'subtitle'};
 
-   $prefs{'keywords'} = $query->param('pdfkeywords') || Foswiki::Func::getPreferencesValue("GENPDFADDON_KEYWORDS") || KEYWORDS;
+    $prefs{'keywords'} = $query->param('pdfkeywords')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_KEYWORDS")
+      || KEYWORDS;
 
-   $prefs{'subject'} = $query->param('pdfsubject') || Foswiki::Func::getPreferencesValue("GENPDFADDON_SUBJECT") || SUBJECT;
+    $prefs{'subject'} = $query->param('pdfsubject')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_SUBJECT")
+      || SUBJECT;
 
-   # get skin path based on urlparams and genpdfaddon settings
-   $prefs{'skin'} = $query->param('skin') || Foswiki::Func::getPreferencesValue("GENPDFADDON_SKIN") || SKIN;
-   $prefs{'cover'} = $query->param('cover') || Foswiki::Func::getPreferencesValue("GENPDFADDON_COVER") || COVER;
+    # get skin path based on urlparams and genpdfaddon settings
+    $prefs{'skin'} = $query->param('skin')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_SKIN")
+      || SKIN;
+    $prefs{'cover'} = $query->param('cover')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_COVER")
+      || COVER;
 
-   # get view template
-   $prefs{'template'} = $query->param('template') || Foswiki::Func::getPreferencesValue('VIEW_TEMPLATE') || TEMPLATE;
+    # get view template
+    $prefs{'template'} = $query->param('template')
+      || Foswiki::Func::getPreferencesValue('VIEW_TEMPLATE')
+      || TEMPLATE;
 
-   # get htmldoc structure mode
-   $prefs{'struct'} = $query->param('pdfstruct') || Foswiki::Func::getPreferencesValue('GENPDFADDON_MODE') || STRUCT;
-   $prefs{'struct'} = STRUCT unless $prefs{'struct'} =~ /^(book|webpage|continuous)$/o;
+    # get htmldoc structure mode
+    $prefs{'struct'} = $query->param('pdfstruct')
+      || Foswiki::Func::getPreferencesValue('GENPDFADDON_MODE')
+      || STRUCT;
+    $prefs{'struct'} = STRUCT
+      unless $prefs{'struct'} =~ /^(book|webpage|continuous)$/o;
 
-   # Get TOC header/footer. Set to default if nothing useful given
-   $prefs{'tocheader'} = $query->param('pdftocheader') || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCHEADER") || '';
-   $prefs{'tocheader'} = TOCHEADER unless ($prefs{'tocheader'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/);
+    # Get TOC header/footer. Set to default if nothing useful given
+    $prefs{'tocheader'} = $query->param('pdftocheader')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCHEADER")
+      || '';
+    $prefs{'tocheader'} = TOCHEADER
+      unless ( $prefs{'tocheader'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-   $prefs{'tocfooter'} = $query->param('pdftocfooter') || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCFOOTER") || '';
-   $prefs{'tocfooter'} = TOCFOOTER unless ($prefs{'tocfooter'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/);
+    $prefs{'tocfooter'} = $query->param('pdftocfooter')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCFOOTER")
+      || '';
+    $prefs{'tocfooter'} = TOCFOOTER
+      unless ( $prefs{'tocfooter'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-   # Get some other parameters and set reasonable defaults unless not supplied
-   $prefs{'format'} = $query->param('pdfformat') || Foswiki::Func::getPreferencesValue("GENPDFADDON_FORMAT") || '';
-   $prefs{'format'} = FORMAT unless ($prefs{'format'} =~ /^(html(sep)?|ps([123])?|pdf(1[1234])?)$/);
+    # Get some other parameters and set reasonable defaults unless not supplied
+    $prefs{'format'} = $query->param('pdfformat')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_FORMAT")
+      || '';
+    $prefs{'format'} = FORMAT
+      unless ( $prefs{'format'} =~ /^(html(sep)?|ps([123])?|pdf(1[1234])?)$/ );
 
-   $prefs{'size'} = $query->param('pdfpagesize') || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGESIZE") || '';
-   $prefs{'size'} = PAGESIZE unless ($prefs{'size'} =~ /^(letter|legal|a4|universal|(\d+x\d+)(pt|mm|cm|in))$/);
+    $prefs{'size'} = $query->param('pdfpagesize')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGESIZE")
+      || '';
+    $prefs{'size'} = PAGESIZE
+      unless ( $prefs{'size'} =~
+        /^(letter|legal|a4|universal|(\d+x\d+)(pt|mm|cm|in))$/ );
 
-   $prefs{'orientation'} = $query->param('pdforientation') || Foswiki::Func::getPreferencesValue("GENPDFADDON_ORIENTATION") || '';
-   $prefs{'orientation'} = ORIENTATION unless ($prefs{'orientation'} =~ /^(landscape|portrait)$/);
+    $prefs{'orientation'} = $query->param('pdforientation')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_ORIENTATION")
+      || '';
+    $prefs{'orientation'} = ORIENTATION
+      unless ( $prefs{'orientation'} =~ /^(landscape|portrait)$/ );
 
-   $prefs{'headfootsize'} = $query->param('pdfheadfootsize') || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADFOOTSIZE") || '';
-   $prefs{'headfootsize'} = HEADFOOTSIZE unless ($prefs{'headfootsize'} =~ /^\d+$/);
+    $prefs{'headfootsize'} = $query->param('pdfheadfootsize')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADFOOTSIZE")
+      || '';
+    $prefs{'headfootsize'} = HEADFOOTSIZE
+      unless ( $prefs{'headfootsize'} =~ /^\d+$/ );
 
-   $prefs{'header'} = $query->param('pdfheader') || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADER") || '';
-   $prefs{'header'} = HEADER unless ($prefs{'header'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/);
+    $prefs{'header'} = $query->param('pdfheader')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADER")
+      || '';
+    $prefs{'header'} = HEADER
+      unless ( $prefs{'header'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-   $prefs{'footer'} = $query->param('pdffooter') || Foswiki::Func::getPreferencesValue("GENPDFADDON_FOOTER") || '';
-   $prefs{'footer'} = FOOTER unless ($prefs{'footer'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/);
+    $prefs{'footer'} = $query->param('pdffooter')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_FOOTER")
+      || '';
+    $prefs{'footer'} = FOOTER
+      unless ( $prefs{'footer'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-   $prefs{'headfootfont'} = $query->param('pdfheadfootfont') || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADFOOTFONT") || '';
-   $prefs{'headfootfont'} = HEADFOOTFONT unless ($prefs{'headfootfont'} =~
-      /^(times(-roman|-bold|-italic|bolditalic)?|(courier|helvetica)(-bold|-oblique|-boldoblique)?)$/);
+    $prefs{'headfootfont'} = $query->param('pdfheadfootfont')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADFOOTFONT")
+      || '';
+    $prefs{'headfootfont'} = HEADFOOTFONT
+      unless ( $prefs{'headfootfont'} =~
+/^(times(-roman|-bold|-italic|bolditalic)?|(courier|helvetica)(-bold|-oblique|-boldoblique)?)$/
+      );
 
-   $prefs{'width'} = $query->param('pdfwidth') || Foswiki::Func::getPreferencesValue("GENPDFADDON_WIDTH") || '';
-   $prefs{'width'} = WIDTH unless ($prefs{'width'} =~ /^\d+$/);
+    $prefs{'width'} = $query->param('pdfwidth')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_WIDTH")
+      || '';
+    $prefs{'width'} = WIDTH unless ( $prefs{'width'} =~ /^\d+$/ );
 
-   $prefs{'toclevels'} = $query->param('pdftoclevels');
-   $prefs{'toclevels'} = Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCLEVELS") unless (defined($prefs{'toclevels'}) && ($prefs{'toclevels'} =~ /^\d+$/));
-   $prefs{'toclevels'} = TOCLEVELS unless (defined($prefs{'toclevels'}) && ($prefs{'toclevels'} =~ /^\d+$/));
+    $prefs{'toclevels'} = $query->param('pdftoclevels');
+    $prefs{'toclevels'} =
+      Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCLEVELS")
+      unless ( defined( $prefs{'toclevels'} )
+        && ( $prefs{'toclevels'} =~ /^\d+$/ ) );
+    $prefs{'toclevels'} = TOCLEVELS
+      unless ( defined( $prefs{'toclevels'} )
+        && ( $prefs{'toclevels'} =~ /^\d+$/ ) );
 
-   $prefs{'bodycolor'} = $query->param('pdfbodycolor') || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYCOLOR") || '';
-   $prefs{'bodycolor'} = BODYCOLOR unless ($prefs{'bodycolor'} =~ /^[0-9a-fA-F]{6}$/);
+    $prefs{'bodycolor'} = $query->param('pdfbodycolor')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYCOLOR")
+      || '';
+    $prefs{'bodycolor'} = BODYCOLOR
+      unless ( $prefs{'bodycolor'} =~ /^[0-9a-fA-F]{6}$/ );
 
-   # Anything results in true (use 0 to turn these off or override the preference)
-   $prefs{'recursive'} = $query->param('pdfrecursive') || Foswiki::Func::getPreferencesValue("GENPDFADDON_RECURSIVE") || RECURSIVE || '';
+ # Anything results in true (use 0 to turn these off or override the preference)
+    $prefs{'recursive'} = $query->param('pdfrecursive')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_RECURSIVE")
+      || RECURSIVE
+      || '';
 
-   $prefs{'bodyimage'} = $query->param('pdfbodyimage') || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYIMAGE") || BODYIMAGE;
+    $prefs{'bodyimage'} = $query->param('pdfbodyimage')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYIMAGE")
+      || BODYIMAGE;
 
-   $prefs{'logoimage'} = $query->param('pdflogoimage') || Foswiki::Func::getPreferencesValue("GENPDFADDON_LOGOIMAGE") || LOGOIMAGE;
+    $prefs{'logoimage'} = $query->param('pdflogoimage')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_LOGOIMAGE")
+      || LOGOIMAGE;
 
-   $prefs{'numbered'} = $query->param('pdfnumberedtoc') || Foswiki::Func::getPreferencesValue("GENPDFADDON_NUMBEREDTOC") || NUMBEREDTOC || '';
+    $prefs{'numbered'} = $query->param('pdfnumberedtoc')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_NUMBEREDTOC")
+      || NUMBEREDTOC
+      || '';
 
-   $prefs{'duplex'} = $query->param('pdfduplex') || Foswiki::Func::getPreferencesValue("GENPDFADDON_DUPLEX") || DUPLEX || '';
+    $prefs{'duplex'} = $query->param('pdfduplex')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_DUPLEX")
+      || DUPLEX
+      || '';
 
-   $prefs{'shift'} = $query->param('pdfheadershift') || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERSHIFT") || HEADERSHIFT;
+    $prefs{'shift'} = $query->param('pdfheadershift')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERSHIFT")
+      || HEADERSHIFT;
 
-   $prefs{'permissions'} = $query->param('pdfpermissions') || Foswiki::Func::getPreferencesValue("GENPDFADDON_PERMISSIONS") || PERMISSIONS || '';
-   $prefs{'permissions'} = join(',', grep(/^(all|annotate|copy|modify|print|no-annotate|no-copy|no-modify|no-print|none)$/,
-      split(/,/, $prefs{'permissions'})));
+    $prefs{'permissions'} = $query->param('pdfpermissions')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_PERMISSIONS")
+      || PERMISSIONS
+      || '';
+    $prefs{'permissions'} = join(
+        ',',
+        grep(
+/^(all|annotate|copy|modify|print|no-annotate|no-copy|no-modify|no-print|none)$/,
+            split( /,/, $prefs{'permissions'} ) )
+    );
 
-   my @margins = grep(/^(top|bottom|left|right):\d+(\.\d+)?(cm|mm|in|pt)?$/, split(',', ($query->param('pdfmargins') || Foswiki::Func::getPreferencesValue("GENPDFADDON_MARGINS") || MARGINS || '')));
-   for (@margins) {
-      my ($key,$val) = split(/:/);
-      $prefs{$key} = $val;
-   }
-   #for my $key (keys %prefs) { print STDERR "$key = $prefs{$key}\n"; } #DEBUG
+    my @margins = grep( /^(top|bottom|left|right):\d+(\.\d+)?(cm|mm|in|pt)?$/,
+        split(
+            ',',
+            (
+                     $query->param('pdfmargins')
+                  || Foswiki::Func::getPreferencesValue("GENPDFADDON_MARGINS")
+                  || MARGINS
+                  || ''
+            )
+        ) );
+
+    for (@margins) {
+        my ( $key, $val ) = split(/:/);
+        $prefs{$key} = $val;
+    }
+
+    #for my $key (keys %prefs) { print STDERR "$key = $prefs{$key}\n"; } #DEBUG
 }
 
 =pod
@@ -579,244 +708,276 @@ This is the core method to convert the current page into PDF format.
 =cut
 
 sub viewPDF {
-   open(STDERR, ">>$Foswiki::cfg{DataDir}/error.log"); # redirect errors to a log file
+    open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
+      ;    # redirect errors to a log file
 
-   # initialize module wide variables
-   $query = new CGI;
-   %tree = ();
-   %prefs = ();
+    # initialize module wide variables
+    $query = new CGI;
+    %tree  = ();
+    %prefs = ();
 
-   # Initialize Foswiki
-   my $thePathInfo = $query->path_info(); 
-   my $theRemoteUser = $query->remote_user();
-   my $theTopic = $query->param('topic');
-   my $theUrl = $query->url;
+    # Initialize Foswiki
+    my $thePathInfo   = $query->path_info();
+    my $theRemoteUser = $query->remote_user();
+    my $theTopic      = $query->param('topic');
+    my $theUrl        = $query->url;
 
-   my($topic, $webName, $scriptUrlPath, $userName) = 
-      Foswiki::initialize($thePathInfo, $theRemoteUser, $theTopic, $theUrl, $query);
+    my ( $topic, $webName, $scriptUrlPath, $userName ) =
+      Foswiki::initialize( $thePathInfo, $theRemoteUser, $theTopic, $theUrl,
+        $query );
 
-   # Get preferences
-   _getPrefs($query);
+    # Get preferences
+    _getPrefs($query);
 
-   # Set a default skin in the query
-   $query->param('skin', $prefs{'skin'});
-   $query->param('cover', $prefs{'cover'});
+    # Set a default skin in the query
+    $query->param( 'skin',  $prefs{'skin'} );
+    $query->param( 'cover', $prefs{'cover'} );
 
-   # Check for existence
-   Foswiki::Func::redirectCgiQuery($query,
-         Foswiki::Func::getOopsUrl($webName, $topic, "oopsmissing"))
-      unless Foswiki::Func::topicExists($webName, $topic);
-   Foswiki::Func::redirectCgiQuery($query,
-         Foswiki::Func::getOopsUrl($webName, $prefs{'hftopic'}, "oopscreatenewtopic"))
-      unless Foswiki::Func::topicExists($webName, $prefs{'hftopic'});
-   Foswiki::Func::redirectCgiQuery($query,
-         Foswiki::Func::getOopsUrl($webName, $prefs{'titletopic'}, "oopscreatenewtopic"))
-      unless Foswiki::Func::topicExists($webName, $prefs{'titletopic'});
+    # Check for existence
+    Foswiki::Func::redirectCgiQuery( $query,
+        Foswiki::Func::getOopsUrl( $webName, $topic, "oopsmissing" ) )
+      unless Foswiki::Func::topicExists( $webName, $topic );
+    Foswiki::Func::redirectCgiQuery(
+        $query,
+        Foswiki::Func::getOopsUrl(
+            $webName, $prefs{'hftopic'}, "oopscreatenewtopic"
+        )
+    ) unless Foswiki::Func::topicExists( $webName, $prefs{'hftopic'} );
+    Foswiki::Func::redirectCgiQuery(
+        $query,
+        Foswiki::Func::getOopsUrl(
+            $webName, $prefs{'titletopic'}, "oopscreatenewtopic"
+        )
+    ) unless Foswiki::Func::topicExists( $webName, $prefs{'titletopic'} );
 
-   # Get header/footer data
-   my $hfData = _getHeaderFooterData($webName);
+    # Get header/footer data
+    my $hfData = _getHeaderFooterData($webName);
 
-   my $fgrepCmd;
-   my $htmldocCmd;
-   if( defined $Foswiki::cfg{DataDir} ) {
-       # Foswiki-4 or more recent
-       $fgrepCmd = $Foswiki::cfg{RCS}{FgrepCmd};
-       $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd};
-   } else {
-       # Cairo or earlier
-       $fgrepCmd = $Foswiki::fgrepCmd;
-       $htmldocCmd = $Foswiki::htmldocCmd;
-   }
+    my $fgrepCmd;
+    my $htmldocCmd;
+    if ( defined $Foswiki::cfg{DataDir} ) {
 
-   die "Path to htmldoc command not defined" unless $htmldocCmd;
+        # Foswiki-4 or more recent
+        $fgrepCmd   = $Foswiki::cfg{RCS}{FgrepCmd};
+        $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd};
+    }
+    else {
 
-   if ($prefs{'recursive'}) {
-      # Include all descendents of this topic
-      use Cwd 'cwd';
-      my $cwd = cwd; # we need to chdir back after searching
+        # Cairo or earlier
+        $fgrepCmd   = $Foswiki::fgrepCmd;
+        $htmldocCmd = $Foswiki::htmldocCmd;
+    }
 
-      # Get a list of possibilities (all files in the web)
-      chdir(Foswiki::Func::getDataDir()."/$webName");
-      opendir(DIR, ".") or die "$!";
-      my @files = grep { /\.txt$/ && -f "$_" } readdir(DIR);
-      closedir DIR;
-      #for (@files) { print STDERR "file: '$_'\n"; } # DEBUG
-      #print STDERR scalar @files," files found\n"; # DEBUG
+    die "Path to htmldoc command not defined" unless $htmldocCmd;
 
-      # Now build a hash of arrays mapping children to parents
-      # Eg. $tree{$parent} = @children
-      ($fgrepCmd) = split(/ /, $fgrepCmd); # only want the /path/to/command portion
-      while (@files) {
-         my @search = splice(@files, 0, 512); # only search 512 files at a time
-         unshift @search, '%META:TOPICPARENT{'; #}
-         # this is basically ripped straight out of Foswiki::readFromProcessArray
-         # This code follows the safe pipe construct found in perlipc(1).
-         my $pipe;
-         my $pid = open $pipe, '-|';
-         my @data;
-         if ($pid) {       # parent
-            @data = map { chomp $_; $_ } <$pipe>; # remove newline characters.
-            close $pipe;
-         } else {
-            exec { $fgrepCmd } $fgrepCmd, @search;
-            # Usually not reached.
-            exit 127;
-         }
-         #print STDERR scalar @data, " files have parent topics\n"; # DEBUG
-         for (@data) {
-            #print STDERR "data: '$_'\n"; # DEBUG
-            my $tainted = $_;
-            $tainted =~ /(\w+).txt:.*?name=\"(\w+)\"/ && do {
-               push @{ $tree{$2} }, $1;
-               #push @{ $tree{$parent} }, $child;
+    if ( $prefs{'recursive'} ) {
+
+        # Include all descendents of this topic
+        use Cwd 'cwd';
+        my $cwd = cwd;    # we need to chdir back after searching
+
+        # Get a list of possibilities (all files in the web)
+        chdir( Foswiki::Func::getDataDir() . "/$webName" );
+        opendir( DIR, "." ) or die "$!";
+        my @files = grep { /\.txt$/ && -f "$_" } readdir(DIR);
+        closedir DIR;
+
+        #for (@files) { print STDERR "file: '$_'\n"; } # DEBUG
+        #print STDERR scalar @files," files found\n"; # DEBUG
+
+        # Now build a hash of arrays mapping children to parents
+        # Eg. $tree{$parent} = @children
+        ($fgrepCmd) =
+          split( / /, $fgrepCmd );    # only want the /path/to/command portion
+        while (@files) {
+            my @search =
+              splice( @files, 0, 512 );    # only search 512 files at a time
+            unshift @search, '%META:TOPICPARENT{';    #}
+              # this is basically ripped straight out of Foswiki::readFromProcessArray
+              # This code follows the safe pipe construct found in perlipc(1).
+            my $pipe;
+            my $pid = open $pipe, '-|';
+            my @data;
+            if ($pid) {    # parent
+                @data =
+                  map { chomp $_; $_ } <$pipe>;    # remove newline characters.
+                close $pipe;
             }
-         }
-      }
-      chdir($cwd); # return to previous working dir
-   }
+            else {
+                exec {$fgrepCmd} $fgrepCmd, @search;
 
-   # Do a recursive depth first walk through the ancestors in the tree
-   # sub is defined here for clarity
-   sub _depthFirst {
-      my $parent = shift;
-      my $topics = shift; # ref to @topics
-      # the grep gets around a perl dereferencing bug when using strict refs
-      my @children = grep { $_; } @{ $tree{$parent} };
-      for ( sort @children ) {
-         #print STDERR "new child of $parent: '$_'\n"; # DEBUG
-         push @$topics, $_;
-         if (defined $tree{$_}) {
-            # this child is also a parent so bring them in too
-            _depthFirst($_, $topics);
-         }
-      }
-   }
-   my @topics;
-   push @topics, $topic;
-   _depthFirst($topic, \@topics);
+                # Usually not reached.
+                exit 127;
+            }
 
-   # We shift headers here so every topic gets its own <h1>$topic</h1>
-   $prefs{'shift'} += 1 if (scalar @topics > 1);
+            #print STDERR scalar @data, " files have parent topics\n"; # DEBUG
+            for (@data) {
 
-   my @contentFiles;
-   for $topic (@topics) {
-      #print STDERR "preparing $topic\n"; # DEBUG
-      # Get ready to display HTML topic
-      my $htmlData = _getRenderedView($webName, $topic);
+                #print STDERR "data: '$_'\n"; # DEBUG
+                my $tainted = $_;
+                $tainted =~ /(\w+).txt:.*?name=\"(\w+)\"/ && do {
+                    push @{ $tree{$2} }, $1;
 
+                    #push @{ $tree{$parent} }, $child;
+                  }
+            }
+        }
+        chdir($cwd);    # return to previous working dir
+    }
 
-      # Fix topic text (i.e. correct any problems with the HTML that htmldoc might not like
-      $htmlData = _fixHtml($htmlData, $topic, $webName, \@topics);
+    # Do a recursive depth first walk through the ancestors in the tree
+    # sub is defined here for clarity
+    sub _depthFirst {
+        my $parent = shift;
+        my $topics = shift;    # ref to @topics
+          # the grep gets around a perl dereferencing bug when using strict refs
+        my @children = grep { $_; } @{ $tree{$parent} };
+        for ( sort @children ) {
 
-      # The data returned also incluides the header. Remove it.
-      $htmlData =~ s|.*(<!DOCTYPE)|$1|s;
+            #print STDERR "new child of $parent: '$_'\n"; # DEBUG
+            push @$topics, $_;
+            if ( defined $tree{$_} ) {
 
-      # Save this to a temp file for htmldoc processing
-      my ($cfh, $contentFile) = tempfile('GenPDFAddOnXXXXXXXXXX',
-                                          DIR => File::Spec->tmpdir(),
-                                          #UNLINK => 0, # DEBUG
-                                          SUFFIX => '.html');
-      open $cfh, ">$contentFile";
-      print $cfh $hfData . $htmlData;
-      close $cfh;
-      push @contentFiles, $contentFile;
-   }
+                # this child is also a parent so bring them in too
+                _depthFirst( $_, $topics );
+            }
+        }
+    }
+    my @topics;
+    push @topics, $topic;
+    _depthFirst( $topic, \@topics );
 
-   # Create a file holding the title data
-   my $titleFile = _createTitleFile($webName);
+    # We shift headers here so every topic gets its own <h1>$topic</h1>
+    $prefs{'shift'} += 1 if ( scalar @topics > 1 );
 
-   # Create a temp file for output
-   my ($ofh, $outputFile) = tempfile('GenPDFAddOnXXXXXXXXXX',
-                                      DIR => File::Spec->tmpdir(),
-                                      #UNLINK => 0, # DEBUG
-	                              SUFFIX => '.pdf');
+    my @contentFiles;
+    for $topic (@topics) {
 
-   # Convert contentFile to PDF using HTMLDOC
-   my @htmldocArgs;
-   push @htmldocArgs, "--$prefs{'struct'}",
-                      "--quiet",
-                      "--links",
-                      "--linkstyle", "plain",
-                      "--outfile", "$outputFile",
-                      "--format", "$prefs{'format'}",
-                      "--$prefs{'orientation'}",
-                      "--size", "$prefs{'size'}",
-                      "--browserwidth", "$prefs{'width'}",
-                      "--titlefile", "$titleFile";
-   if ($prefs{'toclevels'} eq '0' ) {
-      push @htmldocArgs, "--no-toc",
-                         "--firstpage", "p1";
-   }
-   else
-   {
-      push @htmldocArgs, "--numbered" if $prefs{'numbered'};
-      push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}",
-                         "--tocheader", "$prefs{'tocheader'}",
-                         "--tocfooter", "$prefs{'tocfooter'}",
-                         "--firstpage", "toc";
-   }
-   push @htmldocArgs, "--duplex" if $prefs{'duplex'};
-   push @htmldocArgs, "--bodyimage", "$prefs{'bodyimage'}" if $prefs{'bodyimage'};
-   push @htmldocArgs, "--logoimage", "$prefs{'logoimage'}" if $prefs{'logoimage'};
-   push @htmldocArgs, "--headfootfont", "$prefs{'headfootfont'}" if $prefs{'headfootfont'};
-   push @htmldocArgs, "--headfootsize", "$prefs{'headfootsize'}" if $prefs{'headfootsize'};
-   push @htmldocArgs, "--header", "$prefs{'header'}" if $prefs{'header'};
-   push @htmldocArgs, "--footer", "$prefs{'footer'}" if $prefs{'footer'};
-   push @htmldocArgs, "--permissions", "$prefs{'permissions'}" if $prefs{'permissions'};
-   push @htmldocArgs, "--bodycolor", "$prefs{'bodycolor'}" if $prefs{'bodycolor'};
-   push @htmldocArgs, "--top", "$prefs{'top'}" if $prefs{'top'};
-   push @htmldocArgs, "--bottom", "$prefs{'bottom'}" if $prefs{'bottom'};
-   push @htmldocArgs, "--left", "$prefs{'left'}" if $prefs{'left'};
-   push @htmldocArgs, "--right", "$prefs{'right'}" if $prefs{'right'};
+        #print STDERR "preparing $topic\n"; # DEBUG
+        # Get ready to display HTML topic
+        my $htmlData = _getRenderedView( $webName, $topic );
 
-   push @htmldocArgs, @contentFiles;
+# Fix topic text (i.e. correct any problems with the HTML that htmldoc might not like
+        $htmlData = _fixHtml( $htmlData, $topic, $webName, \@topics );
 
-   #print STDERR "Calling htmldoc with args: @htmldocArgs\n";
+        # The data returned also incluides the header. Remove it.
+        $htmlData =~ s|.*(<!DOCTYPE)|$1|s;
 
-   #try the 4.2 sandbox
-   my $sandbox = $Foswiki::sandbox;
-   if (!defined($sandbox)) {  #must be 4.1 or before.
-      $sandbox = $Foswiki::Plugins::SESSION->{sandbox};
-   }
+        # Save this to a temp file for htmldoc processing
+        my ( $cfh, $contentFile ) = tempfile(
+            'GenPDFAddOnXXXXXXXXXX',
+            DIR => File::Spec->tmpdir(),
 
-   # Disable CGI feature of newer versions of htmldoc
-   # (thanks to Brent Roberts for this fix)
-   $ENV{HTMLDOC_NOCGI} = "yes";
-   my ( $Output, $exit ) =
-     $sandbox->sysCommand(
-         $htmldocCmd.' '.join(' ', @htmldocArgs) );
-   if( ! -e $outputFile ) {
-      die "error running htmldoc ($htmldocCmd): $Output\n";
-   }
+            #UNLINK => 0, # DEBUG
+            SUFFIX => '.html'
+        );
+        open $cfh, ">$contentFile";
+        print $cfh $hfData . $htmlData;
+        close $cfh;
+        push @contentFiles, $contentFile;
+    }
 
-   #  output the HTML header and the output of HTMLDOC
-   my $cd = "filename=${webName}_$topic.";
-   try {
-       if ($prefs{'format'} =~ /pdf/) {
-           print CGI::header( -TYPE => 'application/pdf',
-                              -Content_Disposition => $cd.'pdf');
-       }
-       elsif ($prefs{'format'} =~ /ps/) {
-           print CGI::header( -TYPE => 'application/postscript',
-                              -Content_Disposition => $cd.'ps');
-       }
-       else {
-           print CGI::header( -TYPE => 'text/html',
-                              -Content_Disposition => $cd.'html' );
-       }
-   } catch Error::Simple with {
-   };
+    # Create a file holding the title data
+    my $titleFile = _createTitleFile($webName);
 
-   open $ofh, $outputFile;
-   while(<$ofh>){
-	  print;
-   }
-   close $ofh;
+    # Create a temp file for output
+    my ( $ofh, $outputFile ) = tempfile(
+        'GenPDFAddOnXXXXXXXXXX',
+        DIR => File::Spec->tmpdir(),
 
-   # Cleaning up temporary files
-   unlink $outputFile, $titleFile;
-   unlink @contentFiles; 
+        #UNLINK => 0, # DEBUG
+        SUFFIX => '.pdf'
+    );
+
+    # Convert contentFile to PDF using HTMLDOC
+    my @htmldocArgs;
+    push @htmldocArgs, "--$prefs{'struct'}", "--quiet", "--links",
+      "--linkstyle", "plain", "--outfile", "$outputFile", "--format",
+      "$prefs{'format'}", "--$prefs{'orientation'}", "--size", "$prefs{'size'}",
+      "--browserwidth", "$prefs{'width'}", "--titlefile", "$titleFile";
+    if ( $prefs{'toclevels'} eq '0' ) {
+        push @htmldocArgs, "--no-toc", "--firstpage", "p1";
+    }
+    else {
+        push @htmldocArgs, "--numbered" if $prefs{'numbered'};
+        push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}", "--tocheader",
+          "$prefs{'tocheader'}", "--tocfooter", "$prefs{'tocfooter'}",
+          "--firstpage", "toc";
+    }
+    push @htmldocArgs, "--duplex" if $prefs{'duplex'};
+    push @htmldocArgs, "--bodyimage", "$prefs{'bodyimage'}"
+      if $prefs{'bodyimage'};
+    push @htmldocArgs, "--logoimage", "$prefs{'logoimage'}"
+      if $prefs{'logoimage'};
+    push @htmldocArgs, "--headfootfont", "$prefs{'headfootfont'}"
+      if $prefs{'headfootfont'};
+    push @htmldocArgs, "--headfootsize", "$prefs{'headfootsize'}"
+      if $prefs{'headfootsize'};
+    push @htmldocArgs, "--header", "$prefs{'header'}" if $prefs{'header'};
+    push @htmldocArgs, "--footer", "$prefs{'footer'}" if $prefs{'footer'};
+    push @htmldocArgs, "--permissions", "$prefs{'permissions'}"
+      if $prefs{'permissions'};
+    push @htmldocArgs, "--bodycolor", "$prefs{'bodycolor'}"
+      if $prefs{'bodycolor'};
+    push @htmldocArgs, "--top",    "$prefs{'top'}"    if $prefs{'top'};
+    push @htmldocArgs, "--bottom", "$prefs{'bottom'}" if $prefs{'bottom'};
+    push @htmldocArgs, "--left",   "$prefs{'left'}"   if $prefs{'left'};
+    push @htmldocArgs, "--right",  "$prefs{'right'}"  if $prefs{'right'};
+
+    push @htmldocArgs, @contentFiles;
+
+    #print STDERR "Calling htmldoc with args: @htmldocArgs\n";
+
+    #try the 4.2 sandbox
+    my $sandbox = $Foswiki::sandbox;
+    if ( !defined($sandbox) ) {    #must be 4.1 or before.
+        $sandbox = $Foswiki::Plugins::SESSION->{sandbox};
+    }
+
+    # Disable CGI feature of newer versions of htmldoc
+    # (thanks to Brent Roberts for this fix)
+    $ENV{HTMLDOC_NOCGI} = "yes";
+    my ( $Output, $exit ) =
+      $sandbox->sysCommand( $htmldocCmd . ' ' . join( ' ', @htmldocArgs ) );
+    if ( !-e $outputFile ) {
+        die "error running htmldoc ($htmldocCmd): $Output\n";
+    }
+
+    #  output the HTML header and the output of HTMLDOC
+    my $cd = "filename=${webName}_$topic.";
+    try {
+        if ( $prefs{'format'} =~ /pdf/ ) {
+            print CGI::header(
+                -TYPE                => 'application/pdf',
+                -Content_Disposition => $cd . 'pdf'
+            );
+        }
+        elsif ( $prefs{'format'} =~ /ps/ ) {
+            print CGI::header(
+                -TYPE                => 'application/postscript',
+                -Content_Disposition => $cd . 'ps'
+            );
+        }
+        else {
+            print CGI::header(
+                -TYPE                => 'text/html',
+                -Content_Disposition => $cd . 'html'
+            );
+        }
+    }
+    catch Error::Simple with {};
+
+    open $ofh, $outputFile;
+    while (<$ofh>) {
+        print;
+    }
+    close $ofh;
+
+    # Cleaning up temporary files
+    unlink $outputFile, $titleFile;
+    unlink @contentFiles;
 }
 
 1;
+
 # vim:et:sw=3:ts=3:tw=0
