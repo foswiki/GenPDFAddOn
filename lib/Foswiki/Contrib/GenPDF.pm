@@ -72,6 +72,11 @@ our $query;
 our %tree;
 our %prefs;
 
+# Need to keep temporary image files around until htmldoc runs,
+# so keep the file handles at the upper level
+my @tempfiles = ();
+my $tempdir;
+
 =pod
 
 =head2 _fixTags($text)
@@ -302,17 +307,16 @@ sub _createTitleFile {
     # This is needed in case wiki requires read authentication like SSL client
     # certificates.
     # Fully qualify any unqualified URLs (to make it portable to another host)
-    my $url   = Foswiki::Func::getUrlHost();
-    my $pdir  = Foswiki::Func::getPubDir();
-    my $purlp = Foswiki::Func::getPubUrlPath();
+    my $url = Foswiki::Func::getUrlHost();
 
-    $text =~ s!<img(.*?) src="($url)?$purlp!<img$1 src="$pdir\/!sgi;
+    $text = _fixImages($text);
     $text =~ s/<a(.*?) href="(?!#)\//<a$1 href="$url\//sgi;
 
     # Save it to a file
     my ( $fh, $name ) = tempfile(
         'GenPDFAddOnXXXXXXXXXX',
-        DIR    => File::Spec->tmpdir(),
+        DIR    => $tempdir,
+        UNLINK => 0,          # DEBUG
         SUFFIX => '.html'
     );
     open $fh, ">$name";
@@ -348,6 +352,111 @@ s|<h(\d)>((?:(?!<h\d>).)*)</h\d>|'<h'.($newHead = ($1+$prefs{'shift'})>15?15:($1
 
     return $html;
 }
+
+=head2 _fixImages($html)
+
+Extract all local server image names and convert to temporary files
+Images that are relative to the server pub path or any images
+that are fully qualified by server URL to the pub directory need to
+be converted to temp files to avoid http / https authorization issues
+on authenticated servers, and to validate image access throught the
+Foswiki access controls.
+
+=cut
+
+sub _fixImages {
+    my ($html) = @_;
+    my %infoForImages;
+    my $Foswikiurl = Foswiki::Func::getUrlHost();
+    my $pubpath    = Foswiki::Func::getPubUrlPath();
+
+    # Extract all of the image URLs from the html page
+    my @imgsrc = $html =~ m{
+        <[iI][mM][gG]\s+                        # img tag + one or more white space
+        (?:[^>\s]+\s+)*                         # attributes other than src
+                                                # any nonclosing tag character, followed by
+                                                # whitespace, repeated 0 or more times
+        [sS][rR][cC]\s*                        # src= with or without whitespace
+       (?:=\s*"([^\"]+)"|                      # delimited by double-quotes OR
+          =\s*'([^\']+)'|                      # delimited by single quotes OR
+           =\s*([^\s>]+)                       # delimited by spaces
+       )                                       # close non-matching grouping
+         [^>]*                                  # anything else up to end of tag
+        >                                       # close tag
+     }gsx;
+
+    foreach my $imgurl (@imgsrc) {
+        if ( !defined $imgurl ) {
+            next;
+        }    # Regex will return undefined matches for non-matching cases
+        if ( !( ( $imgurl =~ m{^$pubpath/} ) || ( $imgurl =~ m{^$Foswikiurl} ) )
+          )
+        {
+            next;
+        }    # Skip images foreign to this site
+             #print STDERR $url."\n";  #DEBUG
+         # Parse the url into the Foswiki components, starting from the /pub/ path  /pub/web/topic/filename
+        ( my $imgweb, my $imgtopic, my $imgfile ) =
+          ( $imgurl =~ m{$pubpath/([^/]+)/([^/]+)/(.*)$} );
+        $infoForImages{$imgurl} =
+          { # Save the information into a hash keyed by $imgurl to eliminate duplicate URLs
+            url   => $imgurl,
+            web   => $imgweb,
+            topic => $imgtopic,
+            file  => $imgfile,
+          };
+    }
+    foreach my $imgInfo ( values(%infoForImages) ) {
+        my $imgurl = $imgInfo->{url};
+
+# Create a temporary file and ask Foswiki to copy the attachment into the temp file
+        my $tempfh = new File::Temp(
+            TEMPLATE => 'GenPDFImgXXXXXXXXXXXX',
+            DIR      => $tempdir,
+            UNLINK   => 0
+        );    #DEBUG
+        push @tempfiles, $tempfh;  # Save the temp file handle for later cleanup
+
+        try {
+
+#print STDERR "Read attachment".$imgInfo->{web}." ".$imgInfo->{topic}." ".$imgInfo->{file};  #DEBUG
+            my $data =
+              Foswiki::Func::readAttachment( $imgInfo->{web}, $imgInfo->{topic},
+                $imgInfo->{file} );
+            print $tempfh $data;    # copy the attachment to the temporary file
+            close $tempfh;
+        }
+        catch Foswiki::AccessControlException with {
+
+      # ignore access errors - htmldoc will ignore empty files, but log an error
+            print STDERR "File Access Exception"
+              . $imgInfo->{web} . " "
+              . $imgInfo->{topic} . " "
+              . $imgInfo->{file};
+        };
+
+        # replace all instances of url with the temporary filename
+        ( my $tvol, my $tdir, my $fname ) =
+          File::Spec->splitpath( $tempfh->filename );
+        $html =~ s{
+           <[iI][mM][gG]\s+                     # starting img tag plus space
+           ((?:[^>\s]+\s+)*)                    # attributes other than src, assign to $1
+           [sS][rR][cC]\s*=\s*                 # src = with or without spaces
+          ([\"\']?)                            # assign quote to $2
+           $imgurl                                 # value of URL
+           ([\"\']?                             # Optional Closing quote
+            [^>]*                                # any non-closing tag characters
+            >)                                   # Close tag  Group assigned to $3
+         }{<img $1src=$2$fname$3
+         }sgx;
+    }
+
+    return $html;
+}
+
+=pod
+
+
 
 =pod
 
@@ -442,11 +551,9 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
   # Fix the image tags to use hard-disk path rather than relative url paths for
   # images.  Needed if wiki requires authentication like SSL client certifcates.
   # Fully qualify any unqualified URLs (to make it portable to another host)
-    my $url   = Foswiki::Func::getUrlHost();
-    my $pdir  = Foswiki::Func::getPubDir();
-    my $purlp = Foswiki::Func::getPubUrlPath();
+    my $url = Foswiki::Func::getUrlHost();
 
-    $html =~ s!<img(.*?) src="($url)?$purlp!<img$1 src="$pdir\/!gi;
+    $html = _fixImages($html);
     $html =~ s/<a(.*?) href="\//<a$1 href="$url\//gi;
 
     # link internally if we include the topic
@@ -770,6 +877,13 @@ sub viewPDF {
 
     die "Path to htmldoc command not defined" unless $htmldocCmd;
 
+    if ( defined $Foswiki::cfg{TempfileDir} ) {
+        $tempdir = $Foswiki::cfg{TempfileDir};
+    }
+    else {
+        $tempdir = File::Spec->tmpdir();
+    }
+
     if ( $prefs{'recursive'} ) {
 
         # Include all descendents of this topic
@@ -866,7 +980,7 @@ sub viewPDF {
         # Save this to a temp file for htmldoc processing
         my ( $cfh, $contentFile ) = tempfile(
             'GenPDFAddOnXXXXXXXXXX',
-            DIR => File::Spec->tmpdir(),
+            DIR => $tempdir,
 
             #UNLINK => 0, # DEBUG
             SUFFIX => '.html'
@@ -883,7 +997,7 @@ sub viewPDF {
     # Create a temp file for output
     my ( $ofh, $outputFile ) = tempfile(
         'GenPDFAddOnXXXXXXXXXX',
-        DIR => File::Spec->tmpdir(),
+        DIR => $tempdir,
 
         #UNLINK => 0, # DEBUG
         SUFFIX => '.pdf'
@@ -894,7 +1008,8 @@ sub viewPDF {
     push @htmldocArgs, "--$prefs{'struct'}", "--quiet", "--links",
       "--linkstyle", "plain", "--outfile", "$outputFile", "--format",
       "$prefs{'format'}", "--$prefs{'orientation'}", "--size", "$prefs{'size'}",
-      "--browserwidth", "$prefs{'width'}", "--titlefile", "$titleFile";
+      "--path", $tempdir, "--browserwidth", "$prefs{'width'}", "--titlefile",
+      "$titleFile";
     if ( $prefs{'toclevels'} eq '0' ) {
         push @htmldocArgs, "--no-toc", "--firstpage", "p1";
     }
