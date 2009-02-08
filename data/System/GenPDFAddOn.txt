@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="BaseUserMapping_333" date="1233206526" format="1.1" version="1.2"}%
+%META:TOPICINFO{author="ProjectContributor" date="1233206526" format="1.1" version="1.2"}%
 <!-- PDFSTART -->
 ---+!! Generate PDF Add-On
  <!-- PDFSTOP --> 

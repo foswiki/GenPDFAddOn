@@ -1,8 +1,8 @@
+bin/genpdf 0755  Script to generate PDF in place of view
 data/System/GenPDFAddOn.txt 	Add-on topic
-data/System/GenPDFExampleTitleTopic.txt 	Example title topic
-data/System/GenPDFExampleHeaderFooterTopic.txt 	Example header and footer topic
+data/System/GenPDFAddOnDemo.txt 0644 Demonstration topic
+data/System/GenPDFExampleHeaderFooterTopic.txt 0644 Example document header/footer
+data/System/GenPDFExampleTitleTopic.txt 0644 Example Title Topic
+lib/Foswiki/Contrib/GenPDF.pm 0644 Primary module
+templates/view.genpdf.tmpl 0644  Alternative view template
 
-bin/genpdf 	Add-on script
-lib/Foswiki/Contrib/GenPDF.pm 	Add-on perl package
-lib/Foswiki/Contrib/GenPDFAddOn/Config.spec
-templates/view.genpdf.tmpl

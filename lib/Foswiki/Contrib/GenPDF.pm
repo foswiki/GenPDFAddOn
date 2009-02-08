@@ -64,7 +64,7 @@ $VERSION = '$Rev$';
 # This is a free-form string you can use to "name" your own plugin version.
 # It is *not* used by the build automation tools, but is reported as part
 # of the version number in PLUGINDESCRIPTIONS.
-$RELEASE = 'Dakar';
+$RELEASE = 'Foswiki 1.0';
 
 $| = 1;    # Autoflush buffers
 
@@ -429,10 +429,10 @@ sub _fixImages {
         catch Foswiki::AccessControlException with {
 
       # ignore access errors - htmldoc will ignore empty files, but log an error
-            print STDERR "File Access Exception"
-              . $imgInfo->{web} . " "
-              . $imgInfo->{topic} . " "
-              . $imgInfo->{file};
+            _writeDebug( "File Access Exception"
+                  . $imgInfo->{web} . " "
+                  . $imgInfo->{topic} . " "
+                  . $imgInfo->{file} );
         };
 
         # replace all instances of url with the temporary filename
@@ -815,8 +815,6 @@ This is the core method to convert the current page into PDF format.
 =cut
 
 sub viewPDF {
-    open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
-      ;    # redirect errors to a log file
 
     # initialize module wide variables
     $query = new CGI;
@@ -860,20 +858,7 @@ sub viewPDF {
     # Get header/footer data
     my $hfData = _getHeaderFooterData($webName);
 
-    my $fgrepCmd;
-    my $htmldocCmd;
-    if ( defined $Foswiki::cfg{DataDir} ) {
-
-        # Foswiki-4 or more recent
-        $fgrepCmd   = $Foswiki::cfg{RCS}{FgrepCmd};
-        $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd};
-    }
-    else {
-
-        # Cairo or earlier
-        $fgrepCmd   = $Foswiki::fgrepCmd;
-        $htmldocCmd = $Foswiki::htmldocCmd;
-    }
+    my $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd};
 
     die "Path to htmldoc command not defined" unless $htmldocCmd;
 
@@ -885,78 +870,22 @@ sub viewPDF {
     }
 
     if ( $prefs{'recursive'} ) {
-
-        # Include all descendents of this topic
-        use Cwd 'cwd';
-        my $cwd = cwd;    # we need to chdir back after searching
-
-        # Get a list of possibilities (all files in the web)
-        chdir( Foswiki::Func::getDataDir() . "/$webName" );
-        opendir( DIR, "." ) or die "$!";
-        my @files = grep { /\.txt$/ && -f "$_" } readdir(DIR);
-        closedir DIR;
-
-        #for (@files) { print STDERR "file: '$_'\n"; } # DEBUG
-        #print STDERR scalar @files," files found\n"; # DEBUG
-
-        # Now build a hash of arrays mapping children to parents
-        # Eg. $tree{$parent} = @children
-        ($fgrepCmd) =
-          split( / /, $fgrepCmd );    # only want the /path/to/command portion
-        while (@files) {
-            my @search =
-              splice( @files, 0, 512 );    # only search 512 files at a time
-            unshift @search, '%META:TOPICPARENT{';    #}
-              # this is basically ripped straight out of Foswiki::readFromProcessArray
-              # This code follows the safe pipe construct found in perlipc(1).
-            my $pipe;
-            my $pid = open $pipe, '-|';
-            my @data;
-            if ($pid) {    # parent
-                @data =
-                  map { chomp $_; $_ } <$pipe>;    # remove newline characters.
-                close $pipe;
-            }
-            else {
-                exec {$fgrepCmd} $fgrepCmd, @search;
-
-                # Usually not reached.
-                exit 127;
-            }
-
-            #print STDERR scalar @data, " files have parent topics\n"; # DEBUG
-            for (@data) {
-
-                #print STDERR "data: '$_'\n"; # DEBUG
-                my $tainted = $_;
-                $tainted =~ /(\w+).txt:.*?name=\"(\w+)\"/ && do {
-                    push @{ $tree{$2} }, $1;
-
-                    #push @{ $tree{$parent} }, $child;
-                  }
-            }
-        }
-        chdir($cwd);    # return to previous working dir
+        my $list = Foswiki::Func::expandCommonVariables(
+            '%SEARCH{ "^%META:TOPICPARENT"
+                type="regex"
+                multiple="on"
+                format="$topic:$parent"
+                separator="|"
+                header=""
+                nonoise="on"}%'
+        );
+        map {
+            my ( $ch, $par ) = split( /:/, $_ );
+            push @{ $tree{$par} }, $ch if $par;
+            # _writeDebug ( "Parent |$par| Child |$ch|");
+        } split( /\|/, $list );
     }
 
-    # Do a recursive depth first walk through the ancestors in the tree
-    # sub is defined here for clarity
-    sub _depthFirst {
-        my $parent = shift;
-        my $topics = shift;    # ref to @topics
-          # the grep gets around a perl dereferencing bug when using strict refs
-        my @children = grep { $_; } @{ $tree{$parent} };
-        for ( sort @children ) {
-
-            #print STDERR "new child of $parent: '$_'\n"; # DEBUG
-            push @$topics, $_;
-            if ( defined $tree{$_} ) {
-
-                # this child is also a parent so bring them in too
-                _depthFirst( $_, $topics );
-            }
-        }
-    }
     my @topics;
     push @topics, $topic;
     _depthFirst( $topic, \@topics );
@@ -967,8 +896,8 @@ sub viewPDF {
     my @contentFiles;
     for $topic (@topics) {
 
-        #print STDERR "preparing $topic\n"; # DEBUG
-        # Get ready to display HTML topic
+        _writeDebug("preparing $topic");    # DEBUG
+                                            # Get ready to display HTML topic
         my $htmlData = _getRenderedView( $webName, $topic );
 
 # Fix topic text (i.e. correct any problems with the HTML that htmldoc might not like
@@ -1041,19 +970,13 @@ sub viewPDF {
 
     push @htmldocArgs, @contentFiles;
 
-    #print STDERR "Calling htmldoc with args: @htmldocArgs\n";
-
-    #try the 4.2 sandbox
-    my $sandbox = $Foswiki::sandbox;
-    if ( !defined($sandbox) ) {    #must be 4.1 or before.
-        $sandbox = $Foswiki::Plugins::SESSION->{sandbox};
-    }
+    _writeDebug("Calling htmldoc with args: @htmldocArgs");
 
     # Disable CGI feature of newer versions of htmldoc
     # (thanks to Brent Roberts for this fix)
     $ENV{HTMLDOC_NOCGI} = "yes";
-    my ( $Output, $exit ) =
-      $sandbox->sysCommand( $htmldocCmd . ' ' . join( ' ', @htmldocArgs ) );
+    my ( $Output, $exit ) = Foswiki::Sandbox->sysCommand(
+        $htmldocCmd . ' ' . join( ' ', @htmldocArgs ) );
     if ( !-e $outputFile ) {
         die "error running htmldoc ($htmldocCmd): $Output\n";
     }
@@ -1093,6 +1016,33 @@ sub viewPDF {
     unlink @contentFiles;
 }
 
+### sub _writeDebug
+##
+##   Writes a common format debug message if debug is enabled
+
+sub _writeDebug {
+    &Foswiki::Func::writeDebug( "GenPDF  - " . $_[0] );    # if $debugDefault;
+}    ### SUB _writeDebug
+
+
+# Do a recursive depth first walk through the ancestors in the tree
+# sub is defined here for clarity
+sub _depthFirst {
+    my $parent = shift;
+    my $topics = shift;    # ref to @topics
+         # the grep gets around a perl dereferencing bug when using strict refs
+    my @children = grep { $_; } @{ $tree{$parent} };
+    for ( sort @children ) {
+
+        _writeDebug("new child of $parent: '$_'");    # DEBUG
+        push @$topics, $_;
+        if ( defined $tree{$_} ) {
+
+            # this child is also a parent so bring them in too
+            _depthFirst( $_, $topics );
+        }
+    }
+}
+
 1;
 
-# vim:et:sw=3:ts=3:tw=0
