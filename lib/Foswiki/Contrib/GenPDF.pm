@@ -72,7 +72,7 @@ our $query;
 our %tree;
 our %prefs;
 
-our $NO_PREFS_IN_TOPIC = 1;  # Don't read the Plugin topic for preferences.
+our $NO_PREFS_IN_TOPIC = 1;    # Don't read the Plugin topic for preferences.
 
 # Need to keep temporary image files around until htmldoc runs,
 # so keep the file handles at the upper level
@@ -317,7 +317,8 @@ sub _createTitleFile {
     # Save it to a file
     my ( $fh, $name ) = tempfile(
         'GenPDFAddOnXXXXXXXXXX',
-        DIR    => $tempdir,
+        DIR => $tempdir,
+
         #UNLINK => 0,          # DEBUG
         SUFFIX => '.html'
     );
@@ -431,7 +432,7 @@ sub _fixImages {
         catch Foswiki::AccessControlException with {
 
       # ignore access errors - htmldoc will ignore empty files, but log an error
-          &Foswiki::Func::writeDebug( "File Access Exception"
+            &Foswiki::Func::writeDebug( "File Access Exception"
                   . $imgInfo->{web} . " "
                   . $imgInfo->{topic} . " "
                   . $imgInfo->{file} );
@@ -496,17 +497,17 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 
     # Prepend META tags for PDF meta info - may be redefined later by topic text
     my $meta =
-      '<META NAME="AUTHOR" CONTENT="%SPACEOUT{%REVINFO{format="$wikiname"}%}%"/>'
+'<META NAME="AUTHOR" CONTENT="%SPACEOUT{%REVINFO{format="$wikiname"}%}%"/>'
       ;    # Specifies the document author.
-    # 
-    # As of htmldoc 1.8.27, it  appends the copyright statement into the Author metadata. This can break
-    # some content management systems.  Copyright metadata can be excluded by setting to '0'.
-    #
-    $meta .= '<META NAME="COPYRIGHT" CONTENT="' . $prefs{'copyright'} . '"/>' if $prefs{'copyright'}
-      ;    # Specifies the document copyright.
+           #
+     # As of htmldoc 1.8.27, it  appends the copyright statement into the Author metadata. This can break
+     # some content management systems.  Copyright metadata can be excluded by setting to '0'.
+     #
+    $meta .= '<META NAME="COPYRIGHT" CONTENT="' . $prefs{'copyright'} . '"/>'
+      if $prefs{'copyright'};    # Specifies the document copyright.
     $meta .=
       '<META NAME="DOCNUMBER" CONTENT="%REVINFO{format="r1.$rev - $date"}%"/>'
-      ;    # Specifies the document number.
+      ;                          # Specifies the document number.
     $meta .= '<META NAME="GENERATOR" CONTENT="%WIKITOOLNAME% %WIKIVERSION%"/>'
       ;    # Specifies the application that generated the HTML file.
     $meta .=
@@ -629,12 +630,13 @@ sub _getPrefs {
 
     # copyright notice inserted into PDF Metadata
     $prefs{'copyright'} = $query->param('pdfcopyright');
-    if ($prefs{'copyright'} eq '') {
-      $prefs{'copyright'} = Foswiki::Func::getPreferencesValue("GENPDFADDON_COPYRIGHT");
-      if ($prefs{'copyright'} eq '') {
-          $prefs{'copyright'} = COPYRIGHT;
-          } 
-      }
+    if ( $prefs{'copyright'} eq '' ) {
+        $prefs{'copyright'} =
+          Foswiki::Func::getPreferencesValue("GENPDFADDON_COPYRIGHT");
+        if ( $prefs{'copyright'} eq '' ) {
+            $prefs{'copyright'} = COPYRIGHT;
+        }
+    }
 
     # Debugging:  Logs to data/debug.txt and preserves temporary files
     $prefs{'debug'} = $query->param('pdfdebug')
@@ -905,7 +907,7 @@ sub viewPDF {
         map {
             my ( $ch, $par ) = split( /:/, $_ );
             push @{ $tree{$par} }, $ch if $par;
-             _writeDebug ( "Parent |$par| Child |$ch|");
+            _writeDebug("Parent |$par| Child |$ch|");
         } split( /\|/, $list );
     }
 
@@ -1001,14 +1003,15 @@ sub viewPDF {
 
     my ( $Output, $exit ) = Foswiki::Sandbox->sysCommand(
         $htmldocCmd . ' ' . join( ' ', @htmldocArgs ) );
-    _writeDebug( "htmldoc exited with $exit" );
+    _writeDebug("htmldoc exited with $exit");
     if ( !-e $outputFile ) {
-        die "error running htmldoc ($htmldocCmd) - Check logs and files in tmp directory for errors.  \n\n @htmldocArgs ";
+        die
+"error running htmldoc ($htmldocCmd) - Check logs and files in tmp directory for errors.  \n\n @htmldocArgs ";
     }
 
     #  output the HTML header and the output of HTMLDOC
     my $cd = "filename=${webName}_$topic.";
-    try { 
+    try {
         if ( $prefs{'format'} =~ /pdf/ ) {
             print CGI::header(
                 -TYPE                => 'application/pdf',
@@ -1039,7 +1042,7 @@ sub viewPDF {
     # Cleaning up temporary files
     unlink $outputFile, $titleFile unless $prefs{'debug'};
     unlink @contentFiles unless $prefs{'debug'};
-    unlink @tempfiles unless $prefs{'debug'};
+    unlink @tempfiles    unless $prefs{'debug'};
 }
 
 ### sub _writeDebug
@@ -1047,9 +1050,8 @@ sub viewPDF {
 ##   Writes a common format debug message if debug is enabled
 
 sub _writeDebug {
-    &Foswiki::Func::writeDebug( "GenPDF  - " . $_[0] ) if $prefs{'debug'}; 
+    &Foswiki::Func::writeDebug( "GenPDF  - " . $_[0] ) if $prefs{'debug'};
 }    ### SUB _writeDebug
-
 
 # Do a recursive depth first walk through the ancestors in the tree
 # sub is defined here for clarity
