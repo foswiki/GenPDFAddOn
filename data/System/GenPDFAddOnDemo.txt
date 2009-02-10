@@ -1,7 +1,8 @@
-%META:TOPICINFO{author="ProjectContributor" date="1233972234" format="1.1" version="1.2"}%
+%META:TOPICINFO{author="ProjectContributor" date="1234067891" format="1.1" version="1.2"}%
 %META:TOPICPARENT{name="GenPDFAddOn"}%
 %TOC%
-
+=&lt;!-- PDFSTART --&gt;  inserted here to avoid a blank page for the Foswiki TOC=
+<!-- PDFSTART --> 
 ---+ GenPDFAddOnDemo
 
 This is a sample document to show what can be achieved with the GenPDFAddOn Plugin.
@@ -143,6 +144,8 @@ Generated: %DISPLAYTIME%
 % META:FIELD{name="TopicHeadline" title="TopicHeadline" value="A look at what the GenPDFAddOn plugin can do"}%
 % META:FIELD{name="KeyWords" title="KeyWords" value="PDF, plugin, acrobat"}%
 </verbatim>
+<!-- PDFSTOP -->
+=&lt;!-- PDFSTOP --&gt;  inserted here to stop before the signature=
 
 -- Main.WadeTurland - 14 Jun 2005
 
