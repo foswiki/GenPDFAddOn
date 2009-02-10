@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" date="1233206526" format="1.1" version="1.2"}%
+%META:TOPICINFO{author="ProjectContributor" date="1234239531" format="1.1" reprev="1.3" version="1.3"}%
 <!-- PDFSTART -->
 ---+!! Generate PDF Add-On
  <!-- PDFSTOP --> 
@@ -68,10 +68,10 @@ The following table shows the various configuration variables and their meaning.
 | =pdfmargins= | GENPDFADDON_MARGINS | =undef= | =top:0.5in,bottom:2.5cm,left:12pt,right:15mm= | Specify the page margins (white space to edge of page) |
 | =pdfbodycolor= | GENPDFADDON_BODYCOLOR | =undef= | =#CCff99= | Specify the background colour of all pages |
 | =pdfstruct= | GENPDFADDON_STRUCT | =book= | =webpage= | use =book= for structured topics, i.e. when rendering a bunch of topics recursively; use =webpage= when printing a topic without a specific heading structure, i.e. if it is just a normal webpage or if it has got a special VIEW_TEMPLATE |
-| =pdfcopyright= | GENPDFADDON_COPYRIGHT | =%WEBCOPYRIGHT%= | =Copyright 2009= | Should PDF Metadata include the Foswiki %%NOP%WEBCOPYRIGHT% or another value.  If set to 0, copyright is excluded.  If set to any other string, the string is included in the metadata.  Htmldoc has a bug and appends the copyright to the author metadata, which can break some document management systems that depend on the metadata. Set to =0= to exclude the copyright from the PDF metadata. |
+| =pdfcopyright= | GENPDFADDON_COPYRIGHT | =%%NOP%WEBCOPYRIGHT%= | =Copyright 2009= | Should PDF Metadata include the Foswiki %%NOP%WEBCOPYRIGHT% or another value. If set to 0, copyright is excluded. If set to any other string, the string is included in the metadata. Htmldoc has a bug and appends the copyright to the author metadata, which can break some document management systems that depend on the metadata. Set to =0= to exclude the copyright from the PDF metadata. |
 | =pdfdebug= | GENPDFADDON_DEBUG | =0= | =1= | Include debug messages and don't clean up temporary files after execution |
 
-If using Foswiki preference variables, copy them to the appropriate web preferences page.  This plugin does not read settings from this topic!
+If using Foswiki preference variables, copy them to the appropriate web preferences page. This plugin does not read settings from this topic!
 
 %SEARCH{"[G]ENPDFADDON_" topic="%TOPIC%" type="regex" casesensitive="on" limit="21" nosearch="on" nosummary="on" header="   * Settings for the %SYSTEMWEB%.%TOPIC% Plugin" nototal="on" multiple="on" format="      * #Set $pattern(.*(G.*?N_.*? ).*) = "}%
 
@@ -182,3 +182,11 @@ __Related Topic:__ %SYSTEMWEB%.ContributedAddOns <!-- PDFSTOP -->
 
 <!-- vim:noet:sw=3:ts=3:tw=0
 -->
+
+%META:FORM{name="PackageForm"}%
+%META:FIELD{name="ExtensionClassification" attributes="" title="ExtensionClassification" value="Data and Files"}%
+%META:FIELD{name="ExtensionType" attributes="" title="ExtensionType" value="PluginPackage"}%
+%META:FIELD{name="Compatibility" attributes="" title="[[Compatibility]]" value="Linux, Foswiki 1.0.0   No longer compatible with TWiki.  Requires htmldoc."}%
+%META:FIELD{name="DemoUrl" attributes="" title="DemoUrl" value="http://"}%
+%META:FIELD{name="DevelopedInSVN" attributes="" title="DevelopedInSVN" value="Yes"}%
+%META:FIELD{name="ModificationPolicy" attributes="" title="ModificationPolicy" value="PleaseFeelFreeToModify"}%
