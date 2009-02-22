@@ -336,10 +336,10 @@ sub _createTitleFile {
     $text =~ s{
           <a\s+                                # starting img tag plus space
           ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
-          [hH][rR][eE][fF]\s*              # href = with or without spaces
-          (?: =(\s*[\"\'])\/ |                # starts quote delimitied
-              =(\s*)\/ |                      # or optional space delimited 
-          )                              # Negative assertion, not followed by a #
+          [hH][rR][eE][fF]\s*                  # href = with or without spaces
+          (?: =(\s*[\"\'])\/ |                 # starts quote delimitied
+              =(\s*)\/ |                       # or optional space delimited 
+          )                              
          }{<a $1 href=$2$url\/}sgx;
     use warnings;
 
@@ -597,10 +597,10 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     $html =~ s{
           <a\s+                                # starting img tag plus space
           ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
-          [hH][rR][eE][fF]\s*              # href = with or without spaces
-          (?: =(\s*[\"\'])\/ |                # starts quote delimitied
-              =(\s*)\/ |                      # or optional space delimited 
-          )                              # Negative assertion, not followed by a #
+          [hH][rR][eE][fF]\s*                  # href = with or without spaces
+          (?: =(\s*[\"\'])\/ |                 # starts quote delimitied
+              =(\s*)\/ |                       # or optional space delimited 
+          )                              
          }{<a $1 href=$2$url\/}sgx;
     use warnings;
 
