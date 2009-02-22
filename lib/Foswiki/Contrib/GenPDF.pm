@@ -79,6 +79,26 @@ our $NO_PREFS_IN_TOPIC = 1;    # Don't read the Plugin topic for preferences.
 my @tempfiles = ();
 my $tempdir;
 
+# Regex strings for manipulating tags
+#  - Single-quoted string
+my $reSqString = qr{
+      \'
+      [^\']*
+      \'
+    }x;
+
+#  - Double-quoted string
+my $reDqString = qr{
+      \"
+      [^\"]*
+      \"
+    }x;
+
+#  - Attribute delimited by single or double quotes, or by spaces.
+my $reAttrValue = qr{
+      (?: $reSqString | $reDqString | [^\'\"\s]+ )
+    }x;
+
 =pod
 
 =head2 _fixTags($text)
@@ -308,11 +328,20 @@ sub _createTitleFile {
     # Fix the image tags to use hard-disk path rather than url paths.
     # This is needed in case wiki requires read authentication like SSL client
     # certificates.
+    $text = _fixImages($text);
+
     # Fully qualify any unqualified URLs (to make it portable to another host)
     my $url = Foswiki::Func::getUrlHost();
-
-    $text = _fixImages($text);
-    $text =~ s/<a(.*?) href="(?!#)\//<a$1 href="$url\//sgi;
+    no warnings;
+    $text =~ s{
+          <a\s+                                # starting img tag plus space
+          ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
+          [hH][rR][eE][fF]\s*              # href = with or without spaces
+          (?: =(\s*[\"\'])\/ |                # starts quote delimitied
+              =(\s*)\/ |                      # or optional space delimited 
+          )                              # Negative assertion, not followed by a #
+         }{<a $1 href=$2$url\/}sgx;
+    use warnings;
 
     # Save it to a file
     my ( $fh, $name ) = tempfile(
@@ -374,19 +403,18 @@ sub _fixImages {
     my $pubpath    = Foswiki::Func::getPubUrlPath();
 
     # Extract all of the image URLs from the html page
-    my @imgsrc = $html =~ m{
-        <[iI][mM][gG]\s+                        # img tag + one or more white space
-        (?:[^>\s]+\s+)*                         # attributes other than src
-                                                # any nonclosing tag character, followed by
-                                                # whitespace, repeated 0 or more times
-        [sS][rR][cC]\s*                        # src= with or without whitespace
-       (?:=\s*"([^\"]+)"|                      # delimited by double-quotes OR
-          =\s*'([^\']+)'|                      # delimited by single quotes OR
-           =\s*([^\s>]+)                       # delimited by spaces
-       )                                       # close non-matching grouping
-         [^>]*                                  # anything else up to end of tag
-        >                                       # close tag
-     }gsx;
+
+    my $reImgSrc = qr{
+      <[iI][mM][gG]                                             # <img 
+        \s+                                                     # space
+      (?: \w+ \s*=\s* $reAttrValue \s+ )*                       # 0 or more word = value
+      [sS][rR][cC] \s*=\s*                                      # src=
+      (?: (?:\'([^\']+)\') | (?:\"([^\"]+)\") | ([^\'\"\s]+) )  # delimited value
+      (?: \s+ \w+ \s*=\s* $reAttrValue )*                       # 0 or more word = value
+      \s*/?>                                                    # ending bracket
+    }x;
+
+    my @imgsrc = $html =~ m/$reImgSrc/gs;
 
     foreach my $imgurl (@imgsrc) {
         if ( !defined $imgurl ) {
@@ -441,17 +469,21 @@ sub _fixImages {
         # replace all instances of url with the temporary filename
         ( my $tvol, my $tdir, my $fname ) =
           File::Spec->splitpath( $tempfh->filename );
+
+        no warnings;    # non-matching backref causes warnings
         $html =~ s{
-           <[iI][mM][gG]\s+                     # starting img tag plus space
-           ((?:[^>\s]+\s+)*)                    # attributes other than src, assign to $1
-           [sS][rR][cC]\s*=\s*                 # src = with or without spaces
+          <[iI][mM][gG]\s+                     # starting img tag plus space
+          ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
+          [sS][rR][cC]\s*=\s*                  # src = with or without spaces
           ([\"\']?)                            # assign quote to $2
-           $imgurl                                 # value of URL
-           ([\"\']?                             # Optional Closing quote
-            [^>]*                                # any non-closing tag characters
-            >)                                   # Close tag  Group assigned to $3
-         }{<img $1src=$2$fname$3
+          $imgurl                              # value of URL
+          \2                                # Optional Closing quote
+          ( \s+ \w+ \s*=\s* $reAttrValue )*    # 0 or more word = value - Assign to $3
+          \s*/?>                                    # Close tag  Group 
+         }{<img $1 src=$2$fname$2 $3 >
          }sgx;
+        use warnings;
+
     }
 
     return $html;
@@ -557,11 +589,20 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 
   # Fix the image tags to use hard-disk path rather than relative url paths for
   # images.  Needed if wiki requires authentication like SSL client certifcates.
-  # Fully qualify any unqualified URLs (to make it portable to another host)
-    my $url = Foswiki::Func::getUrlHost();
-
     $html = _fixImages($html);
-    $html =~ s/<a(.*?) href="\//<a$1 href="$url\//gi;
+
+    # Fully qualify any unqualified URLs (to make it portable to another host)
+    my $url = Foswiki::Func::getUrlHost();
+    no warnings;
+    $html =~ s{
+          <a\s+                                # starting img tag plus space
+          ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
+          [hH][rR][eE][fF]\s*              # href = with or without spaces
+          (?: =(\s*[\"\'])\/ |                # starts quote delimitied
+              =(\s*)\/ |                      # or optional space delimited 
+          )                              # Negative assertion, not followed by a #
+         }{<a $1 href=$2$url\/}sgx;
+    use warnings;
 
     # link internally if we include the topic
     for my $wikiword (@$refTopics) {
@@ -630,10 +671,10 @@ sub _getPrefs {
 
     # copyright notice inserted into PDF Metadata
     $prefs{'copyright'} = $query->param('pdfcopyright');
-    if ( $prefs{'copyright'} eq '' ) {
+    if ( ( !defined $prefs{'copyright'} ) || $prefs{'copyright'} eq '' ) {
         $prefs{'copyright'} =
           Foswiki::Func::getPreferencesValue("GENPDFADDON_COPYRIGHT");
-        if ( $prefs{'copyright'} eq '' ) {
+        if ( !defined $prefs{'copyright'} || $prefs{'copyright'} eq '' ) {
             $prefs{'copyright'} = COPYRIGHT;
         }
     }
