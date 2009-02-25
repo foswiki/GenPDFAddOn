@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" date="1234239531" format="1.1" reprev="1.3" version="1.3"}%
+%META:TOPICINFO{author="ProjectContributor" date="1235519859" format="1.1" reprev="1.5" version="1.5"}%
 <!-- PDFSTART -->
 ---+!! Generate PDF Add-On
  <!-- PDFSTOP --> 
@@ -43,6 +43,7 @@ The following table shows the various configuration variables and their meaning.
 | =pdfsubtitle= | GENPDFADDON_SUBTITLE | | A short guide to creating foobar documents | |
 | =pdfheadertopic= | GENPDFADDON_HEADERTOPIC | | !GenPDFHeaderFooterTopic | The name of a topic that defines headers and footers using &lt;-- HEADER LEFT "foobar" --&gt; syntax |
 | =pdftitletopic= | GENPDFADDON_TITLETOPIC | | !GenPDFTitleTopic | The name of a topic that defines the layout of the title page |
+| =pdftitledoc= | GENPDFADDON_TITLEDOC | | | The name of an attachment of =pdftitletopic=; if specified ,becomes the title page. Allows images - see htmldoc manual |
 | =skin= | GENPDFADDON_SKIN | =pattern= | =nat= | Default skin to use for PDF generation |
 | =cover= | GENPDFADDON_COVER | =print= | =print.nat= | Default cover to use for PDF generation |
 | =pdfrecursive= | GENPDFADDON_RECURSIVE | =undef= | =on= | Include children of the base topic in the PDF |
@@ -70,6 +71,10 @@ The following table shows the various configuration variables and their meaning.
 | =pdfstruct= | GENPDFADDON_STRUCT | =book= | =webpage= | use =book= for structured topics, i.e. when rendering a bunch of topics recursively; use =webpage= when printing a topic without a specific heading structure, i.e. if it is just a normal webpage or if it has got a special VIEW_TEMPLATE |
 | =pdfcopyright= | GENPDFADDON_COPYRIGHT | =%%NOP%WEBCOPYRIGHT%= | =Copyright 2009= | Should PDF Metadata include the Foswiki %%NOP%WEBCOPYRIGHT% or another value. If set to 0, copyright is excluded. If set to any other string, the string is included in the metadata. Htmldoc has a bug and appends the copyright to the author metadata, which can break some document management systems that depend on the metadata. Set to =0= to exclude the copyright from the PDF metadata. |
 | =pdfdebug= | GENPDFADDON_DEBUG | =0= | =1= | Include debug messages and don't clean up temporary files after execution |
+| =pdffirstpage= | GENPDFADDON_FIRSTPAGE | =toc= | | First page viewer will open: =toc= table of contents; =p1= first page; =c1= first chapter. |
+| =pdfdestination= | GENPDFADDON_DESTINATION | =view= | | Output to browser window or save-as prompt |
+| =pdfpagelayout= | GENPDFADDON_PAGELAYOUT | =single= | | View's initial presentation layout: =single=, =one=, =twoleft=, =tworight= |
+| =pdfpagemode= | GENPDFADDON_PAGEMODE | =outline= | | Viewer's initial presentation mode: =outline=, =document=, =fullscreen= |
 
 If using Foswiki preference variables, copy them to the appropriate web preferences page. This plugin does not read settings from this topic!
 
@@ -100,6 +105,7 @@ See the HTMLDOC documentation at http://www.htmldoc.org for details of the forma
 ---++ Frequently Asked Questions
    $ *How do I stop the table of contents from being generated?*: For some topics, like User topics, it doesn't make any sense to have a table of contents generated so add ='pdftoclevels=0'= as a URL parameter.
    $ *When I do a recursive PDF of !WebHome it doesn't include all topics*: That's because some topics distributed with !Foswiki don't have a parent association. If you _really_ want to include every topic in the web, you should reparent them all with !WebHome as the parent.
+   $ *Ocassionally no PDF document is generated*: The default structure of =book= requires that headings be present in the topic. Try setting =pdfstruct=webpage=
 
 ---++ Add-On Installation Instructions
 
@@ -149,9 +155,10 @@ __Note:__ You do not need to install anything on the browser to use this add-on.
 
 ---++ Add-On Info
 
-|  Add-on Author: | Foswiki:Main/BrianSpinar, Foswiki:Main/WadeTurland |
-|  Add-on Version: | 02 Jul 2008 |
+|  Add-on Author: | Foswiki:Main/BrianSpinar, Foswiki:Main/WadeTurland, Foswiki:Main/GeorgeClark |
 |  Change History: | |
+|  Feb 2009 | Conversion to Foswiki. Better &lt;a and &lt;img tag handling. Rewrote attachment handling to use Func:: API Rewrote recursive mode to use %SEARCH  |
+|  24 Dec 2008 | Added FIRSTPAGE, DESTINATION, TITLEDOC, PAGELAYOUT & PAGEMODE. fixed tag rendering, again. Now accepts either quote. Incorporated body extraction patch; made it work for title pages. removed outdated comment from example title page. Limited testing; use previous version if that makes you nervous. -- Foswiki:Main/TimotheLitt |
 |  02 Jul 2008 | added support for =VIEW_TEMPLATE= and =COVER=; fixed rendering of anchor and img tags; added =pdfstruct= parameter to print unstructured webpages as well; Foswiki:Main.MichaelDaum |
 |  25 Jun 2008 | added =template= activation and Configure script spec file Foswiki:Main.SvenDowideit |
 |  25 Jun 2008 | security and Foswiki 4.2 fixes Foswiki:Main.SvenDowideit |
@@ -179,9 +186,6 @@ __Note:__ You do not need to install anything on the browser to use this add-on.
 __Related Topic:__ %SYSTEMWEB%.ContributedAddOns <!-- PDFSTOP -->
 
 -- TWiki:Main/WadeTurland - 28 Jun 2005%BR% -- TWiki:Main/BrianSpinar - 12 Apr 2005
-
-<!-- vim:noet:sw=3:ts=3:tw=0
--->
 
 %META:FORM{name="PackageForm"}%
 %META:FIELD{name="ExtensionClassification" attributes="" title="ExtensionClassification" value="Data and Files"}%

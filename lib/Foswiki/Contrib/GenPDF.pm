@@ -15,6 +15,14 @@
 # Additional mess by Patrick Ohl - Biomax Bioinformatics AG
 # January 2003
 # fixes for Foswiki 4.2 (c) 2008 SvenDowideit@fosiki.com
+# 24-Dec-2008 - litt@acm.org
+# Fixes for images & title page segfaults.  Include some patches
+# from the plugin wiki.  Added
+# pdffirstpage GENPDFADDON_FIRSTPAGE toc p1, c1, toc
+# pdfdestination GENPDFADDON_DESTINATION view view,save
+# pdfpagelayout GENPDFADDON_PAGELAYOUT single single, one, twoleft, tworight
+# pdfpagemode GENPDFADDON_PAGEMODE outline document, outline, fullscreen
+# pdftitledoc GENPDFADDON_TITLEDOC undef document (file) as title
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -296,7 +304,27 @@ sub _createTitleFile {
 
     # Get the title topic (if it exists)
     if ( $prefs{'titletopic'} ) {
-        $text .= Foswiki::Func::readTopicText( $webName, $topic );
+        my $doc = $prefs{'titledoc'};
+        if ($doc) {
+            $text = Foswiki::Func::readAttachment( $webName, $topic, $doc );
+            if ($text) {
+                $doc =~ m/^.*\.(\w+)$/;
+                my ( $fh, $name ) = tempfile(
+                    'GenPDFAddOnXXXXXXXXXX',
+                    DIR    => File::Spec->tmpdir(),
+                    SUFFIX => ( $1 || '.html' )
+                );
+                open $fh, ">$name";
+                binmode $fh;
+                print $fh $text;
+                close $fh;
+                return $name;
+            }
+            $text = "Unable to read $webName.$topic/$doc for title";
+        }
+        else {
+            $text .= Foswiki::Func::readTopicText( $webName, $topic );
+        }
     }
 
     # FIXME - must be a better way?
@@ -312,12 +340,19 @@ sub _createTitleFile {
     $text = Foswiki::Func::expandCommonVariables( $text, $topic, $webName );
     $text = Foswiki::Func::renderText($text);
 
+    # Keep the body only.  A new header will be added later.
+    $text =~ s%.*<body[^>]*>%%is;
+    $text =~ s%</body>.*%%is;
+
+    # remove <nop> tags
+    $text =~ s/<nop>//g;
+
     # FIXME - send to _fixHtml
     # As of HtmlDoc 1.8.24, it only handles HTML3.2 elements so
     # convert some common HTML4.x elements to similar HTML3.2 elements
     $text =~ s/&ndash;/&shy;/g;
-    $text =~ s/&[lr]dquo;/"/g;
-    $text =~ s/&[lr]squo;/'/g;
+    $text =~ s/&[lr]dquo;/"/g;    #"
+    $text =~ s/&[lr]squo;/'/g;    #'
     $text =~ s/&brvbar;/|/g;
 
 # convert FoswikiNewLinks to normal text
@@ -332,16 +367,13 @@ sub _createTitleFile {
 
     # Fully qualify any unqualified URLs (to make it portable to another host)
     my $url = Foswiki::Func::getUrlHost();
-    no warnings;
     $text =~ s{
-          <a\s+                                # starting img tag plus space
-          ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
-          [hH][rR][eE][fF]\s*                  # href = with or without spaces
-          (?: =(\s*[\"\'])\/ |                 # starts quote delimitied
-              =(\s*)\/                         # or optional space delimited 
-          )                              
-         }{<a $1 href=$2$url\/}sgx;
-    use warnings;
+          <a\s+                                   # starting img tag plus space
+          ( (?: \w+ \s*=\s* $reAttrValue \s+ )* ) # 0 or more word = value - Assign to $1
+          [hH][rR][eE][fF]\s*                     # href = with or without spaces
+          (  =\s*[\"\']?                          # starts quote delimitied
+          )/
+         }{<a $1 href$2$url/}sgx;
 
     # Save it to a file
     my ( $fh, $name ) = tempfile(
@@ -470,19 +502,17 @@ sub _fixImages {
         ( my $tvol, my $tdir, my $fname ) =
           File::Spec->splitpath( $tempfh->filename );
 
-        no warnings;    # non-matching backref causes warnings
         $html =~ s{
           <[iI][mM][gG]\s+                     # starting img tag plus space
-          ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
+          ( (?: \w+ \s*=\s* $reAttrValue \s+ )* )   # 0 or more word = value - Assign to $1
           [sS][rR][cC]\s*=\s*                  # src = with or without spaces
           ([\"\']?)                            # assign quote to $2
           $imgurl                              # value of URL
           \2                                # Optional Closing quote
-          ( \s+ \w+ \s*=\s* $reAttrValue )*    # 0 or more word = value - Assign to $3
+          ( (?: \s+ \w+ \s*=\s* $reAttrValue )* )   # 0 or more word = value - Assign to $3
           \s*/?>                                    # Close tag  Group 
          }{<img $1 src=$2$fname$2 $3 >
          }sgx;
-        use warnings;
 
     }
 
@@ -511,6 +541,10 @@ sub _fixHtml {
     $title =~ s/<.*?>//gs;
 
     #print STDERR "title: '$title'\n"; # DEBUG
+
+    # Keep the body only.  A new header will be added later.
+    $html =~ s%.*<body[^>]*>%%is;
+    $html =~ s%</body>.*%%is;
 
     # Extract the content between the PDFSTART and PDFSTOP comment markers
     $html = _extractPdfSections($html);
@@ -573,13 +607,14 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     }
 
     # htmldoc reads <title> for PDF Title meta-info
-    $html = "<head><title>$title</title>\n$meta</head>\n<body>$html</body>";
+    $html =
+"<html><head><title>$title</title>\n$meta</head>\n<body>$html</body></html>";
 
     # As of HtmlDoc 1.8.24, it only handles HTML3.2 elements so
     # convert some common HTML4.x elements to similar HTML3.2 elements
     $html =~ s/&ndash;/&shy;/g;
-    $html =~ s/&[lr]dquo;/"/g;
-    $html =~ s/&[lr]squo;/'/g;
+    $html =~ s/&[lr]dquo;/"/g;    #"
+    $html =~ s/&[lr]squo;/'/g;    #'
     $html =~ s/&brvbar;/|/g;
 
 # convert FoswikiNewLinks to normal text
@@ -593,16 +628,13 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 
     # Fully qualify any unqualified URLs (to make it portable to another host)
     my $url = Foswiki::Func::getUrlHost();
-    no warnings;
     $html =~ s{
-          <a\s+                                # starting img tag plus space
-          ( \w+ \s*=\s* $reAttrValue \s+ )*    # 0 or more word = value - Assign to $1
-          [hH][rR][eE][fF]\s*                  # href = with or without spaces
-          (?: =(\s*[\"\'])\/ |                 # starts quote delimitied
-              =(\s*)\/                         # or optional space delimited 
-          )                              
-         }{<a $1 href=$2$url\/}sgx;
-    use warnings;
+          <a\s+                                    # starting img tag plus space
+          ( (?: \w+ \s*=\s* $reAttrValue \s+ )* )  # 0 or more word = value - Assign to $1
+          [hH][rR][eE][fF]\s*                      # href = with or without spaces
+          ( =\s*[\"\']?                            # starts quote delimitied
+          )/
+         }{<a $1 href$2$url/}sgx;
 
     # link internally if we include the topic
     for my $wikiword (@$refTopics) {
@@ -640,6 +672,8 @@ sub _getPrefs {
     use constant SUBTITLE     => "";
     use constant HEADERTOPIC  => "";
     use constant TITLETOPIC   => "";
+    use constant TITLEDOC     => "";
+    use constant FIRSTPAGE    => 'toc';
     use constant SKIN         => "pattern";
     use constant COVER        => "print";
     use constant TEMPLATE     => "view";
@@ -665,6 +699,9 @@ sub _getPrefs {
     use constant PERMISSIONS  => undef;
     use constant MARGINS      => undef;
     use constant BODYCOLOR    => undef;
+    use constant DESTINATION  => 'view';
+    use constant PAGELAYOUT   => 'single';
+    use constant PAGEMODE     => 'outline';
     use constant STRUCT       => 'book';
     use constant DEBUG        => 0;
     use constant COPYRIGHT    => '%WEBCOPYRIGHT%';
@@ -693,6 +730,9 @@ sub _getPrefs {
     $prefs{'titletopic'} = $query->param('pdftitletopic')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLETOPIC")
       || TITLETOPIC;
+    $prefs{'titledoc'} = $query->param('pdftitledoc')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLEDOC")
+      || TITLEDOC;
 
     $prefs{'banner'} = $query->param('pdfbanner')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_BANNER");
@@ -760,7 +800,21 @@ sub _getPrefs {
     $prefs{'size'} = PAGESIZE
       unless ( $prefs{'size'} =~
         /^(letter|legal|a4|universal|(\d+x\d+)(pt|mm|cm|in))$/ );
-
+    $prefs{'firstpage'} = $query->param('pdffirstpage')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_FIRSTPAGE")
+      || FIRSTPAGE;
+    $prefs{'firstpage'} = FIRSTPAGE
+      unless ( $prefs{'firstpage'} =~ /^(p1|c1|toc)$/ );
+    $prefs{'pagelayout'} = $query->param('pdfpagelayout')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGELAYOUT")
+      || PAGELAYOUT;
+    $prefs{'pagelayout'} = PAGELAYOUT
+      unless ( $prefs{'pagelayout'} =~ /^(single|one|twoleft|tworight)$/ );
+    $prefs{'pagemode'} = $query->param('pdfpagemode')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGEMODE")
+      || PAGEMODE;
+    $prefs{'pagemode'} = PAGEMODE
+      unless ( $prefs{'pagemode'} =~ /^(outline|document|fullscreen)$/ );
     $prefs{'orientation'} = $query->param('pdforientation')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_ORIENTATION")
       || '';
@@ -831,7 +885,9 @@ sub _getPrefs {
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_NUMBEREDTOC")
       || NUMBEREDTOC
       || '';
-
+    $prefs{'destination'} = $query->param('pdfdestination')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_DESTINATION")
+      || DESTINATION;
     $prefs{'duplex'} = $query->param('pdfduplex')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_DUPLEX")
       || DUPLEX
@@ -868,7 +924,7 @@ sub _getPrefs {
         $prefs{$key} = $val;
     }
 
-    #for my $key (keys %prefs) { print STDERR "$key = $prefs{$key}\n"; } #DEBUG
+#for my $key (keys %prefs) { print STDERR "$key = " . ($prefs{$key} || "<<UNDEFINED>>"). "\n"; } #DEBUG
 }
 
 =pod
@@ -880,6 +936,8 @@ This is the core method to convert the current page into PDF format.
 =cut
 
 sub viewPDF {
+    open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
+      ;    # redirect errors to a log file
 
     # initialize module wide variables
     #$query = new CGI;
@@ -1006,13 +1064,19 @@ sub viewPDF {
       "--path", $tempdir, "--browserwidth", "$prefs{'width'}", "--titlefile",
       "$titleFile";
     if ( $prefs{'toclevels'} eq '0' ) {
-        push @htmldocArgs, "--no-toc", "--firstpage", "p1";
+        push @htmldocArgs, "--no-toc";
+        if ( $prefs{'firstpage'} eq 'toc' ) {
+            push @htmldocArgs, "--firstpage", "p1";
+        }
+        else {
+            push @htmldocArgs, "--firstpage", $prefs{'firstpage'};
+        }
     }
     else {
         push @htmldocArgs, "--numbered" if $prefs{'numbered'};
         push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}", "--tocheader",
           "$prefs{'tocheader'}", "--tocfooter", "$prefs{'tocfooter'}",
-          "--firstpage", "toc";
+          "--firstpage", $prefs{'firstpage'};
     }
     push @htmldocArgs, "--duplex" if $prefs{'duplex'};
     push @htmldocArgs, "--bodyimage", "$prefs{'bodyimage'}"
@@ -1033,7 +1097,9 @@ sub viewPDF {
     push @htmldocArgs, "--bottom", "$prefs{'bottom'}" if $prefs{'bottom'};
     push @htmldocArgs, "--left",   "$prefs{'left'}"   if $prefs{'left'};
     push @htmldocArgs, "--right",  "$prefs{'right'}"  if $prefs{'right'};
-
+    push @htmldocArgs, "--pagelayout", "$prefs{'pagelayout'}"
+      if $prefs{'pagelayout'};
+    push @htmldocArgs, "--pagemode", "$prefs{'pagemode'}" if $prefs{'pagemode'};
     push @htmldocArgs, @contentFiles;
 
     _writeDebug("Calling htmldoc with args: @htmldocArgs");
@@ -1046,33 +1112,47 @@ sub viewPDF {
         $htmldocCmd . ' ' . join( ' ', @htmldocArgs ) );
     _writeDebug("htmldoc exited with $exit");
     if ( !-e $outputFile ) {
-        die
-"error running htmldoc ($htmldocCmd) - Check logs and files in tmp directory for errors.  \n\n @htmldocArgs ";
+        die "error running htmldoc ($htmldocCmd): $Output\n";
+    }
+    if ( !-s $outputFile ) {
+        die "htmldoc produced zero length output ($htmldocCmd): $Output\n"
+          . join( ' ', @htmldocArgs ) . "\n";
     }
 
     #  output the HTML header and the output of HTMLDOC
-    my $cd = "filename=${webName}_$topic.";
-    try {
-        if ( $prefs{'format'} =~ /pdf/ ) {
+    my $cd = "filename=${webName}_$topic.%s";
+    $cd = "attachment; $cd" if ( $prefs{'destination'} ne 'view' );
+
+    try
+    { #?? Doesn't this try belong around the run of htmldoc?  CGI::header won't fail.
+        if ( $prefs{'format'} =~ /^pdf/ ) {
             print CGI::header(
                 -TYPE                => 'application/pdf',
-                -Content_Disposition => $cd . 'pdf'
+                -Content_Disposition => sprintf $cd,
+                'pdf'
             );
         }
-        elsif ( $prefs{'format'} =~ /ps/ ) {
+        elsif ( $prefs{'format'} =~ /^ps/ ) {
             print CGI::header(
                 -TYPE                => 'application/postscript',
-                -Content_Disposition => $cd . 'ps'
+                -Content_Disposition => sprintf $cd,
+                'ps'
             );
         }
         else {
             print CGI::header(
                 -TYPE                => 'text/html',
-                -Content_Disposition => $cd . 'html'
+                -Content_Disposition => sprintf $cd,
+                'html'
             );
         }
     }
-    catch Error::Simple with {};
+    catch Error::Simple with {
+        print STDERR "GenPDF caught Error::Simple";
+        my $e = shift;
+        use Data::Dumper;
+        die Dumper($e);
+    };
 
     open $ofh, $outputFile;
     while (<$ofh>) {
