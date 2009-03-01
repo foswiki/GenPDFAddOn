@@ -157,6 +157,7 @@ __Note:__ You do not need to install anything on the browser to use this add-on.
 
 |  Add-on Author: | Foswiki:Main/BrianSpinar, Foswiki:Main/WadeTurland, Foswiki:Main/GeorgeClark |
 |  Change History: | |
+|  28 Feb 2009 | Added missing Config.spec file  Item1161: GenPDFAddOn result in "Not Found" page |
 |  Feb 2009 | Conversion to Foswiki. Better &lt;a and &lt;img tag handling. Rewrote attachment handling to use Func:: API Rewrote recursive mode to use %SEARCH  |
 |  24 Dec 2008 | Added FIRSTPAGE, DESTINATION, TITLEDOC, PAGELAYOUT & PAGEMODE. fixed tag rendering, again. Now accepts either quote. Incorporated body extraction patch; made it work for title pages. removed outdated comment from example title page. Limited testing; use previous version if that makes you nervous. -- Foswiki:Main/TimotheLitt |
 |  02 Jul 2008 | added support for =VIEW_TEMPLATE= and =COVER=; fixed rendering of anchor and img tags; added =pdfstruct= parameter to print unstructured webpages as well; Foswiki:Main.MichaelDaum |
