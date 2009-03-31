@@ -107,6 +107,10 @@ my $reAttrValue = qr{
       (?: $reSqString | $reDqString | [^\'\"\s]+ )
     }x;
 
+#  - Set to true if the document contains html headings
+#    If the document doesn't have any headings, force to webpage or continuous output.
+my $hasHeadings = '';
+
 =pod
 
 =head2 _fixTags($text)
@@ -212,8 +216,9 @@ was at the end).
 sub _extractPdfSections {
     my ($text) = @_;
 
-    # If no start tag, just return everything
+    # If no start or stop tag, just return everything
     return $text if ( $text !~ /<!--\s*PDFSTART\s*-->/ );
+    return $text if ( $text !~ /<!--\s*PDFSTOP\s*-->/ );
 
     my $output = "";
     while ( $text =~ /(.*?)<!--\s*PDFSTART\s*-->(.*?)<!--\s*PDFSTOP\s*-->/sg ) {
@@ -486,6 +491,7 @@ sub _fixImages {
             my $data =
               Foswiki::Func::readAttachment( $imgInfo->{web}, $imgInfo->{topic},
                 $imgInfo->{file} );
+            binmode $tempfh;
             print $tempfh $data;    # copy the attachment to the temporary file
             close $tempfh;
         }
@@ -596,6 +602,9 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     #print STDERR "meta: '$meta'\n"; # DEBUG
 
     $html = _shiftHeaders($html);
+
+  # Check if any headings are present - if none, can't generate a structured PDF
+    $hasHeadings = ( $html =~ /<h[2-6]>/is ) unless ($hasHeadings);
 
     # Insert an <h1> header if one isn't present
     # and a target (after the <h1>) for this topic so it gets a bookmark
@@ -717,20 +726,24 @@ sub _getPrefs {
     }
 
     # Debugging:  Logs to data/debug.txt and preserves temporary files
-    $prefs{'debug'} = $query->param('pdfdebug')
+    $prefs{'debug'} =
+         $query->param('pdfdebug')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_DEBUG")
       || DEBUG;
 
     # header/footer topic
-    $prefs{'hftopic'} = $query->param('pdfheadertopic')
+    $prefs{'hftopic'} =
+         $query->param('pdfheadertopic')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERTOPIC")
       || HEADERTOPIC;
 
     # title topic
-    $prefs{'titletopic'} = $query->param('pdftitletopic')
+    $prefs{'titletopic'} =
+         $query->param('pdftitletopic')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLETOPIC")
       || TITLETOPIC;
-    $prefs{'titledoc'} = $query->param('pdftitledoc')
+    $prefs{'titledoc'} =
+         $query->param('pdftitledoc')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_TITLEDOC")
       || TITLEDOC;
 
@@ -746,100 +759,118 @@ sub _getPrefs {
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_SUBTITLE");
     $prefs{'subtitle'} = SUBTITLE unless defined $prefs{'subtitle'};
 
-    $prefs{'keywords'} = $query->param('pdfkeywords')
+    $prefs{'keywords'} =
+         $query->param('pdfkeywords')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_KEYWORDS")
       || KEYWORDS;
 
-    $prefs{'subject'} = $query->param('pdfsubject')
+    $prefs{'subject'} =
+         $query->param('pdfsubject')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_SUBJECT")
       || SUBJECT;
 
     # get skin path based on urlparams and genpdfaddon settings
-    $prefs{'skin'} = $query->param('skin')
+    $prefs{'skin'} =
+         $query->param('skin')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_SKIN")
       || SKIN;
-    $prefs{'cover'} = $query->param('cover')
+    $prefs{'cover'} =
+         $query->param('cover')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_COVER")
       || COVER;
 
     # get view template
-    $prefs{'template'} = $query->param('template')
+    $prefs{'template'} =
+         $query->param('template')
       || Foswiki::Func::getPreferencesValue('VIEW_TEMPLATE')
       || TEMPLATE;
 
     # get htmldoc structure mode
-    $prefs{'struct'} = $query->param('pdfstruct')
+    $prefs{'struct'} =
+         $query->param('pdfstruct')
       || Foswiki::Func::getPreferencesValue('GENPDFADDON_MODE')
       || STRUCT;
     $prefs{'struct'} = STRUCT
       unless $prefs{'struct'} =~ /^(book|webpage|continuous)$/o;
 
     # Get TOC header/footer. Set to default if nothing useful given
-    $prefs{'tocheader'} = $query->param('pdftocheader')
+    $prefs{'tocheader'} =
+         $query->param('pdftocheader')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCHEADER")
       || '';
     $prefs{'tocheader'} = TOCHEADER
       unless ( $prefs{'tocheader'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-    $prefs{'tocfooter'} = $query->param('pdftocfooter')
+    $prefs{'tocfooter'} =
+         $query->param('pdftocfooter')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCFOOTER")
       || '';
     $prefs{'tocfooter'} = TOCFOOTER
       unless ( $prefs{'tocfooter'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
     # Get some other parameters and set reasonable defaults unless not supplied
-    $prefs{'format'} = $query->param('pdfformat')
+    $prefs{'format'} =
+         $query->param('pdfformat')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_FORMAT")
       || '';
     $prefs{'format'} = FORMAT
       unless ( $prefs{'format'} =~ /^(html(sep)?|ps([123])?|pdf(1[1234])?)$/ );
 
-    $prefs{'size'} = $query->param('pdfpagesize')
+    $prefs{'size'} =
+         $query->param('pdfpagesize')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGESIZE")
       || '';
     $prefs{'size'} = PAGESIZE
       unless ( $prefs{'size'} =~
         /^(letter|legal|a4|universal|(\d+x\d+)(pt|mm|cm|in))$/ );
-    $prefs{'firstpage'} = $query->param('pdffirstpage')
+    $prefs{'firstpage'} =
+         $query->param('pdffirstpage')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_FIRSTPAGE")
       || FIRSTPAGE;
     $prefs{'firstpage'} = FIRSTPAGE
       unless ( $prefs{'firstpage'} =~ /^(p1|c1|toc)$/ );
-    $prefs{'pagelayout'} = $query->param('pdfpagelayout')
+    $prefs{'pagelayout'} =
+         $query->param('pdfpagelayout')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGELAYOUT")
       || PAGELAYOUT;
     $prefs{'pagelayout'} = PAGELAYOUT
       unless ( $prefs{'pagelayout'} =~ /^(single|one|twoleft|tworight)$/ );
-    $prefs{'pagemode'} = $query->param('pdfpagemode')
+    $prefs{'pagemode'} =
+         $query->param('pdfpagemode')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_PAGEMODE")
       || PAGEMODE;
     $prefs{'pagemode'} = PAGEMODE
       unless ( $prefs{'pagemode'} =~ /^(outline|document|fullscreen)$/ );
-    $prefs{'orientation'} = $query->param('pdforientation')
+    $prefs{'orientation'} =
+         $query->param('pdforientation')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_ORIENTATION")
       || '';
     $prefs{'orientation'} = ORIENTATION
       unless ( $prefs{'orientation'} =~ /^(landscape|portrait)$/ );
 
-    $prefs{'headfootsize'} = $query->param('pdfheadfootsize')
+    $prefs{'headfootsize'} =
+         $query->param('pdfheadfootsize')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADFOOTSIZE")
       || '';
     $prefs{'headfootsize'} = HEADFOOTSIZE
       unless ( $prefs{'headfootsize'} =~ /^\d+$/ );
 
-    $prefs{'header'} = $query->param('pdfheader')
+    $prefs{'header'} =
+         $query->param('pdfheader')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADER")
       || '';
     $prefs{'header'} = HEADER
       unless ( $prefs{'header'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-    $prefs{'footer'} = $query->param('pdffooter')
+    $prefs{'footer'} =
+         $query->param('pdffooter')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_FOOTER")
       || '';
     $prefs{'footer'} = FOOTER
       unless ( $prefs{'footer'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
 
-    $prefs{'headfootfont'} = $query->param('pdfheadfootfont')
+    $prefs{'headfootfont'} =
+         $query->param('pdfheadfootfont')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADFOOTFONT")
       || '';
     $prefs{'headfootfont'} = HEADFOOTFONT
@@ -847,7 +878,8 @@ sub _getPrefs {
 /^(times(-roman|-bold|-italic|bolditalic)?|(courier|helvetica)(-bold|-oblique|-boldoblique)?)$/
       );
 
-    $prefs{'width'} = $query->param('pdfwidth')
+    $prefs{'width'} =
+         $query->param('pdfwidth')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_WIDTH")
       || '';
     $prefs{'width'} = WIDTH unless ( $prefs{'width'} =~ /^\d+$/ );
@@ -861,43 +893,52 @@ sub _getPrefs {
       unless ( defined( $prefs{'toclevels'} )
         && ( $prefs{'toclevels'} =~ /^\d+$/ ) );
 
-    $prefs{'bodycolor'} = $query->param('pdfbodycolor')
+    $prefs{'bodycolor'} =
+         $query->param('pdfbodycolor')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYCOLOR")
       || '';
     $prefs{'bodycolor'} = BODYCOLOR
       unless ( $prefs{'bodycolor'} =~ /^[0-9a-fA-F]{6}$/ );
 
  # Anything results in true (use 0 to turn these off or override the preference)
-    $prefs{'recursive'} = $query->param('pdfrecursive')
+    $prefs{'recursive'} =
+         $query->param('pdfrecursive')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_RECURSIVE")
       || RECURSIVE
       || '';
 
-    $prefs{'bodyimage'} = $query->param('pdfbodyimage')
+    $prefs{'bodyimage'} =
+         $query->param('pdfbodyimage')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYIMAGE")
       || BODYIMAGE;
 
-    $prefs{'logoimage'} = $query->param('pdflogoimage')
+    $prefs{'logoimage'} =
+         $query->param('pdflogoimage')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_LOGOIMAGE")
       || LOGOIMAGE;
 
-    $prefs{'numbered'} = $query->param('pdfnumberedtoc')
+    $prefs{'numbered'} =
+         $query->param('pdfnumberedtoc')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_NUMBEREDTOC")
       || NUMBEREDTOC
       || '';
-    $prefs{'destination'} = $query->param('pdfdestination')
+    $prefs{'destination'} =
+         $query->param('pdfdestination')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_DESTINATION")
       || DESTINATION;
-    $prefs{'duplex'} = $query->param('pdfduplex')
+    $prefs{'duplex'} =
+         $query->param('pdfduplex')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_DUPLEX")
       || DUPLEX
       || '';
 
-    $prefs{'shift'} = $query->param('pdfheadershift')
+    $prefs{'shift'} =
+         $query->param('pdfheadershift')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERSHIFT")
       || HEADERSHIFT;
 
-    $prefs{'permissions'} = $query->param('pdfpermissions')
+    $prefs{'permissions'} =
+         $query->param('pdfpermissions')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_PERMISSIONS")
       || PERMISSIONS
       || '';
@@ -936,24 +977,25 @@ This is the core method to convert the current page into PDF format.
 =cut
 
 sub viewPDF {
+
+    my $session = shift;
+
+    $Foswiki::Plugins::SESSION = $session;
+
+    $query = $session->{cgiQuery};
+    my $webName = $session->{webName};
+    my $topic   = $session->{topicName};
+
     open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
       ;    # redirect errors to a log file
 
-    # initialize module wide variables
-    #$query = new CGI;
-    $query = Foswiki::Func::getCgiQuery();
     %tree  = ();
     %prefs = ();
 
-    # Initialize Foswiki
     my $thePathInfo   = $query->path_info();
     my $theRemoteUser = $query->remote_user();
     my $theTopic      = $query->param('topic');
     my $theUrl        = $query->url;
-
-    my ( $topic, $webName, $scriptUrlPath, $userName ) =
-      Foswiki::initialize( $thePathInfo, $theRemoteUser, $theTopic, $theUrl,
-        $query );
 
     # Get preferences
     _getPrefs($query);
@@ -1055,6 +1097,13 @@ sub viewPDF {
         #UNLINK => 0, # DEBUG
         SUFFIX => '.pdf'
     );
+
+    # Override structured PDF if no headings present
+    if ( $prefs{'struct'} eq 'book' && !$hasHeadings ) {
+        $prefs{'struct'} = 'webpage';
+        _writeDebug(
+            "No headings present - Overriding structure from book to webpage");
+    }
 
     # Convert contentFile to PDF using HTMLDOC
     my @htmldocArgs;
