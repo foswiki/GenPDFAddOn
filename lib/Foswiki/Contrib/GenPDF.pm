@@ -362,8 +362,16 @@ sub _createTitleFile {
 
 # convert FoswikiNewLinks to normal text
 # FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
-# BUG: this will match _everything_ from the first open span, to the last end span, losing alot of content.
-#$text =~ s/<span class="foswikiNewLink".*?>([\w\s]+)<.*?\/span>/$1/gs;
+
+    $text =~ s{
+      <span\s*class="foswikiNewLink">     # Start span of a new link
+      (.*?)                               # The linked word - non-greedy
+      <a\s+                               # Start of the create link
+      .*?                                 # The rest of the tag - non-greedy match
+      >\?                                 # Close tag and question mark
+      </a>                                # Closing link
+      </span>                             # Closing span
+      }{$1}sgx;
 
     # Fix the image tags to use hard-disk path rather than url paths.
     # This is needed in case wiki requires read authentication like SSL client
@@ -628,8 +636,16 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 
 # convert FoswikiNewLinks to normal text
 # FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
-# BUG: this will match _everything_ from the first open span, to the last end span, losing alot of content.
-#$html =~ s/<span class="foswikiNewLink".*?>([\w\s]+)<.*?\/span>/$1/gs;
+
+    $html =~ s{
+      <span\s*class="foswikiNewLink">     # Start span of a new link
+      (.*?)                               # The linked word - non-greedy
+      <a\s+                               # Start of the create link
+      .*?                                 # The rest of the tag - non-greedy match
+      >\?                                 # Close tag and question mark
+      </a>                                # Closing link
+      </span>                             # Closing span
+      }{$1}sgx;
 
   # Fix the image tags to use hard-disk path rather than relative url paths for
   # images.  Needed if wiki requires authentication like SSL client certifcates.
