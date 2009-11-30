@@ -1,1 +1,7 @@
-#
+CGI,>=0,cpan,May be required for lib/Foswiki/Contrib/GenPDF.pm
+Data::Dumper,>=0,cpan,May be required for lib/Foswiki/Contrib/GenPDF.pm
+Error,>=0,cpan,May be required for lib/Foswiki/Contrib/GenPDF.pm
+File::Temp,>=0,cpan,May be required for lib/Foswiki/Contrib/GenPDF.pm
+Foswiki::Func,>=0,cpan,May be required for lib/Foswiki/Contrib/GenPDF.pm
+Foswiki::UI::View,>=0,cpan,May be required for lib/Foswiki/Contrib/GenPDF.pm
+htmldoc,,external,Obtain from http://www.htmldoc.org/software.php
