@@ -72,7 +72,7 @@ $VERSION = '$Rev$';
 # This is a free-form string you can use to "name" your own plugin version.
 # It is *not* used by the build automation tools, but is reported as part
 # of the version number in PLUGINDESCRIPTIONS.
-$RELEASE = 'Foswiki 1.0';
+$RELEASE = '1.0.8';
 
 $| = 1;    # Autoflush buffers
 
@@ -430,7 +430,7 @@ s|<h(\d)>((?:(?!<h\d>).)*)</h\d>|'<h'.($newHead = ($1+$prefs{'shift'})>15?15:($1
     return $html;
 }
 
-=head2 _fixImages($html)
+=head2 _fixImages($html,nt)
 
 Extract all local server image names and convert to temporary files
 Images that are relative to the server pub path or any images
@@ -439,10 +439,13 @@ be converted to temp files to avoid http / https authorization issues
 on authenticated servers, and to validate image access throught the
 Foswiki access controls.
 
+if nt is set to true, then return a simple filename instead of an html tag.
+
 =cut
 
 sub _fixImages {
-    my ($html) = @_;
+    my $html = $_[0];
+    my $notag = $_[1] || 0;
     my %infoForImages;
     my $Foswikiurl = Foswiki::Func::getUrlHost();
     my $pubpath    = Foswiki::Func::getPubUrlPath();
@@ -516,18 +519,30 @@ sub _fixImages {
         ( my $tvol, my $tdir, my $fname ) =
           File::Spec->splitpath( $tempfh->filename );
 
-        $html =~ s{
-          <[iI][mM][gG]\s+                     # starting img tag plus space
-          ( (?: \w+ \s*=\s* $reAttrValue \s+ )* )   # 0 or more word = value - Assign to $1
-          [sS][rR][cC]\s*=\s*                  # src = with or without spaces
-          ([\"\']?)                            # assign quote to $2
-          $imgurl                              # value of URL
-          \2                                # Optional Closing quote
-          ( (?: \s+ \w+ \s*=\s* $reAttrValue )* )   # 0 or more word = value - Assign to $3
-          \s*/?>                                    # Close tag  Group 
-         }{<img $1 src=$2$fname$2 $3 >
-         }sgx;
-
+        # For htmldoc commandline parameters, images are passed as a filename, not an html tag. 
+        if ($notag) {
+            $html =~ s{
+              <[iI][mM][gG]\s+                     # starting img tag plus space
+              ( (?: \w+ \s*=\s* $reAttrValue \s+ )* )   # 0 or more word = value - Assign to $1
+              [sS][rR][cC]\s*=\s*                  # src = with or without spaces
+              ([\"\']?)                            # assign quote to $2
+              $imgurl                              # value of URL
+              \2                                # Optional Closing quote
+              ( (?: \s+ \w+ \s*=\s* $reAttrValue )* )   # 0 or more word = value - Assign to $3
+              \s*/?>                                    # Close tag  Group 
+             }{$tempfh}sgx;
+	 } else {
+            $html =~ s{
+              <[iI][mM][gG]\s+                     # starting img tag plus space
+              ( (?: \w+ \s*=\s* $reAttrValue \s+ )* )   # 0 or more word = value - Assign to $1
+              [sS][rR][cC]\s*=\s*                  # src = with or without spaces
+              ([\"\']?)                            # assign quote to $2
+              $imgurl                              # value of URL
+              \2                                # Optional Closing quote
+              ( (?: \s+ \w+ \s*=\s* $reAttrValue )* )   # 0 or more word = value - Assign to $3
+              \s*/?>                                    # Close tag  Group 
+             }{<img $1 src=$2$fname$2 $3 > }sgx;
+        }
     }
 
     return $html;
@@ -1092,7 +1107,6 @@ sub viewPDF {
         my ( $cfh, $contentFile ) = tempfile(
             'GenPDFAddOnXXXXXXXXXX',
             DIR => $tempdir,
-
             #UNLINK => 0, # DEBUG
             SUFFIX => '.html'
         );
@@ -1167,14 +1181,21 @@ sub viewPDF {
     push @htmldocArgs, "--pagemode", "$prefs{'pagemode'}" if $prefs{'pagemode'};
     push @htmldocArgs, @contentFiles;
 
-    _writeDebug("Calling htmldoc with args: @htmldocArgs");
-
     # Disable CGI feature of newer versions of htmldoc
     # (thanks to Brent Roberts for this fix)
     $ENV{HTMLDOC_NOCGI} = "yes";
 
+    my $htmldocArgs = join(' ', @htmldocArgs);
+    $htmldocArgs = Foswiki::Func::expandCommonVariables( $htmldocArgs,
+        $topic, $webName );
+
+    # Command line paramters need filenames, not image tags, so strip any tags and convert to filename.
+    $htmldocArgs = _fixImages($htmldocArgs,1);
+
+    _writeDebug("Calling htmldoc with args: $htmldocArgs");
+
     my ( $Output, $exit ) = Foswiki::Sandbox->sysCommand(
-        $htmldocCmd . ' ' . join( ' ', @htmldocArgs ) );
+        $htmldocCmd . ' ' . $htmldocArgs );
     _writeDebug("htmldoc exited with $exit");
     if ( !-e $outputFile ) {
         die "error running htmldoc ($htmldocCmd): $Output\n";
