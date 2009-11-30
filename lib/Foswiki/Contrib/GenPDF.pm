@@ -140,9 +140,9 @@ returns it.
 =cut
 
 sub _getRenderedView {
-    my ( $webName, $topic ) = @_;
+    my ( $webName, $topic, $rev) = @_;
 
-    my $text = Foswiki::Func::readTopicText( $webName, $topic );
+    my $text = Foswiki::Func::readTopicText( $webName, $topic, $rev );
 
     # FIXME - must be a better way?
     if ( $text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/ ) {
@@ -1016,6 +1016,7 @@ sub viewPDF {
     $query = $session->{cgiQuery};
     my $webName = $session->{webName};
     my $topic   = $session->{topicName};
+    my $rev     = $query->param('rev');
 
     open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
       ;    # redirect errors to a log file
@@ -1095,7 +1096,7 @@ sub viewPDF {
 
         _writeDebug("preparing $topic");    # DEBUG
                                             # Get ready to display HTML topic
-        my $htmlData = _getRenderedView( $webName, $topic );
+        my $htmlData = _getRenderedView( $webName, $topic, $rev );
 
 # Fix topic text (i.e. correct any problems with the HTML that htmldoc might not like
         $htmlData = _fixHtml( $htmlData, $topic, $webName, \@topics );
