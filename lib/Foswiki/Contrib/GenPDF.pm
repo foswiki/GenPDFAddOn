@@ -1067,21 +1067,26 @@ sub viewPDF {
         $tempdir = File::Spec->tmpdir();
     }
 
-    if ( $prefs{'recursive'} ) {
-        my $list = Foswiki::Func::expandCommonVariables(
-            '%SEARCH{ "^%META:TOPICPARENT"
-                type="regex"
-                multiple="on"
-                format="$topic:$parent"
-                separator="|"
-                header=""
-                nonoise="on"}%'
-        );
-        map {
-            my ( $ch, $par ) = split( /:/, $_ );
-            push @{ $tree{$par} }, $ch if $par;
-            _writeDebug("Parent |$par| Child |$ch|");
-        } split( /\|/, $list );
+    if ( $prefs{'recursive'}) {
+        if ($rev) {
+            &_writeDebug("Recursive processing disabled - explicit topic revision specified.");
+            }
+        else {    
+            my $list = Foswiki::Func::expandCommonVariables(
+                '%SEARCH{ "^%META:TOPICPARENT"
+                    type="regex"
+                    multiple="on"
+                    format="$topic:$parent"
+                    separator="|"
+                    header=""
+                    nonoise="on"}%'
+            );
+            map {
+                my ( $ch, $par ) = split( /:/, $_ );
+                push @{ $tree{$par} }, $ch if $par;
+                &_writeDebug("Parent $par Child $ch");
+            } split( /\|/, $list );
+        }
     }
 
     my @topics;

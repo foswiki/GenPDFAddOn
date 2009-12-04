@@ -1,11 +1,13 @@
-%META:TOPICINFO{author="ProjectContributor" date="1235519859" format="1.1" reprev="1.5" version="1.5"}%
+%META:TOPICINFO{author="ProjectContributor" date="1254436886" format="1.1" %reprev="1.5" version="1.5"}%
 <!-- PDFSTART -->
 ---+!! Generate PDF Add-On
- <!-- PDFSTOP --> 
+<!-- PDFSTOP --> 
 %TOC% <!-- PDFSTART --> <!--
-   * Set SHORTDESCRIPTION = Generate a PDF from a single Foswiki page
+   * Set SHORTDESCRIPTION = Generate a PDF from one or more Foswiki topics
 --> 
 %SHORTDESCRIPTION%
+
+This Add On to Foswiki adds a supplementary =view= script called =genpdf=.  =genpdf=  generates a PDF document using the =htmldoc= tool.  =genpdf= can generate a single topic, or a hierarchy of topics.  Configuration options can control page headers and footers, and generation of cover pages.
 
 ---++ Usage
 
@@ -14,10 +16,14 @@
    * A page can also be published by substituting =genpdf= for =view= in the topic URL.
    * To make it even easier for novice Foswiki users to use, we added a link (like edit and attach) to our =view.tmpl= to publish the current page (using the current topic as the document title). The line we added to our template is: 
       * =&lt;a href="%<nop>SCRIPTURLPATH%/genpdf%<nop>SCRIPTSUFFIX%/%<nop>WEB%/%<nop>TOPIC%?pdftitle=%<nop>TOPIC%"&gt;PDF&lt;/a&gt;=
+   * Another option is to create a global variable that inserts a PDF ICON in the document, for example:
+<verbatim>
+      * #Set GENPDFLINK=<span class="foswikiRight" style="margin:0 0 2em 5em; width:34px height:34px; text-align:center;>[[%SCRIPTURL{"genpdf"}/%WEB%/%TOPIC%/?%QUERYSTRING%]]<img src="%PUBURL%/System/GenPDFAddOn/pdficon_large.gif">]]
+</verbatim>
    * You may also choose to replace the Printable (?skin=print) targets in your favourite skin with
 <verbatim>
 [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%][Printable]]
-</verbatim> 
+</verbatim>
    * %N% You can now generate a PDF document containing all of the descendents of the base topic as separate chapters. For example, if you create a !ParentTopic, then create !FirstChild and !SecondChild with !ParentTopic as their parent topic, then create !GrandChildOne with !FirstChild as its parent (and so on), you get a tree like this:
 <verbatim>
 ParentTopic
@@ -26,15 +32,21 @@ ParentTopic
       - GrandChildTwo
    - SecondChild
       - GrandChildThree
-</verbatim> If you add ='?pdfrecursive=on'= to the URL parameters, all of the topics will be rolled into the PDF.
+</verbatim> If you add ='?pdfrecursive=on'= to the URL parameters, all of the topics will be rolled into the PDF. Note that if you specify an explicit rev level of a topic, the recursion option is ignored.
 
 ---++ Configuring the Script
 
-The script can be configured either via URL parameters or web preference variables. URL parameters have precedence over web preference variables. If neither of these are present, the script will use hard-coded default variables. The general script configuration variables are explained in the next section while header/footer and title page configuration are explained in subsequent sections.
+The script can be configured either via URL parameters or web preference variables. URL parameters have precedence over web preference variables. 
+If neither of these are present, the script will use hard-coded default variables. The general script configuration variables are explained in the next 
+section while header/footer and title page configuration are explained in subsequent sections.
 
 ---+++ General Configuration
 
-The following table shows the various configuration variables and their meaning. The first column gives the variable to use if passed in the URL. The second column shows the variable to use if using a Foswiki preference variable (i.e. Set VARIABLE = ). The third column gives the default value if neither the URL nor Foswiki preference variable is used. Note that URL variables have precedence over Foswiki preference variables. For a more detailed description of the HTMLDOC related variables, see the HTMLDOC documentation at http://www.htmldoc.org.
+The following table shows the various configuration variables and their meaning. The first column gives the variable to use if passed in the URL. 
+The second column shows the variable to use if using a Foswiki preference variable (i.e. Set VARIABLE = ). The third column gives the default value 
+if neither the URL nor Foswiki preference variable is used. Note that URL variables have precedence over Foswiki preference variables. 
+
+_For a more detailed description of the HTMLDOC related variables, see the HTMLDOC documentation at http://www.htmldoc.org._
 
 %TABLE{ cellpadding="3" columnwidths="15%, 15%, 15%, 15%, 40%"}%
 | *URL Variable* | *Foswiki Preference Variable* | *Default Value* | *Example* | *Explanation* |
@@ -46,6 +58,7 @@ The following table shows the various configuration variables and their meaning.
 | =pdftitledoc= | GENPDFADDON_TITLEDOC | | | The name of an attachment of =pdftitletopic=; if specified ,becomes the title page. Allows images - see htmldoc manual |
 | =skin= | GENPDFADDON_SKIN | =pattern= | =nat= | Default skin to use for PDF generation |
 | =cover= | GENPDFADDON_COVER | =print= | =print.nat= | Default cover to use for PDF generation |
+| =rev= | | | =rev=10= | Generate a PDF from a prior topic revision.  This disables =pdfrecursive= |
 | =pdfrecursive= | GENPDFADDON_RECURSIVE | =undef= | =on= | Include children of the base topic in the PDF |
 | =pdfformat= | GENPDFADDON_FORMAT | =pdf14= | =pdf12= | HTMLDOC output format |
 | =pdftoclevels= | GENPDFADDON_TOCLEVELS  | =5= | =3= | Number of levels to include in the PDF table of contents (use 0 to disable the generation of a table of contents). Note that HTMLDOC generates a table of contents based on HTML headers in the page. |
@@ -102,6 +115,16 @@ The add-on also allows the user to configure header and footer formats for both 
 
 See the HTMLDOC documentation at http://www.htmldoc.org for details of the format of the header and footers. In addition, the =genpdf= script will perform variable substition for the %<nop>GENPDFADDON _BANNER%, %<nop>GENPDFADDON _TITLE%, and %<nop>GENPDFADDON _SUBTITLE% variables as it does for the title page. Finally, the PDFSTART and PDFSTOP HTML comments should be placed at the beginning and end of header/footer topic. An example header/footer page can be found at GenPDFExampleHeaderFooterTopic.
 
+Note that HTMLDOC will not generate a page header on any page generated by a Level 1 header (---+ header). This is a known issue in htmldoc through version 1.27. A patch is provided further on in this page.
+
+---+++ Generating PDF from a older revision of a topic.
+The latest release of the GenPDFAddOn supports generating a PDF of a previous revision of a topic.  Include the =rev=xx= parameter on the URL in the same format that you would view an older topic revision.
+
+---++++!! Limitations
+   * Specifying a topic revision will disable the recursive option.
+   * The revision is __only__ applied to the primary topic.  All other related topics - title pages, includes, etc. use the current revision.
+   * Any in-topic settings =GENPDFADDON_*= will be taken from the curent version and not from the requested topic revision.
+
 ---++ Frequently Asked Questions
    $ *How do I stop the table of contents from being generated?*: For some topics, like User topics, it doesn't make any sense to have a table of contents generated so add ='pdftoclevels=0'= as a URL parameter.
    $ *When I do a recursive PDF of !WebHome it doesn't include all topics*: That's because some topics distributed with !Foswiki don't have a parent association. If you _really_ want to include every topic in the web, you should reparent them all with !WebHome as the parent.
@@ -112,19 +135,35 @@ See the HTMLDOC documentation at http://www.htmldoc.org for details of the forma
 __Note:__ You do not need to install anything on the browser to use this add-on. The following instructions are for the administrator who installs the add-on on the server where Foswiki is running.
 
    * Install htmldoc from http://www.htmldoc.org/ (optionally use the patch in the Addon's zip file for headers on every page)
-   * Download the ZIP file from the Add-on Home (see below)
-   * Unzip ==%TOPIC%.zip== in your Foswiki installation directory. Content:
+   * Access the =bin/configure= script - Extensions tab, click "Find Extensions", locate GenPDFAddOn in the table and click "Install" 
+   * In the =bin/configure= script, visit the GenPDFAddOn settings and set the path to the =htmldoc= command
+   * _Windows Users:_ Edit the =bin/genpdf= script and update the "shebang"  =#!/bin/perl= to match your system perl location
+       * Example: =#!C:\strawberry\perl\bin\perl.exe 
+   * %X% *Important*  if you use Apache user authentication, be sure to add =genpdf= to the list of restricted scripts in the apache configuration.
+
+---+++ Alternative installation
+   * Download the =tgz= or =zip= file and the =GenPDFAddOn_installer= file from the Add-on Home (see below)
+   * Run the installer ( =perl GenPDFAddOn_installer= ) or unzip ==%TOPIC%.zip== in your Foswiki installation directory
 | *File:* | *Description:* |
- %$MANIFEST% 
+%$MANIFEST% 
    * Adjust the script ownership to match your webserver configuration (e.g. =chown nobody genpdf=) if needed.
    * Make sure the script is executable (e.g =chmod 755 genpdf=).
    * *Adjust the perl path in the genpdf script to match your perl installation location.*
-   * %X% *BEFORE Foswiki-4* Add the variable =$htmldocCmd = "/path/to/htmldoc";= to your =lib/Foswiki.cfg= file so Foswiki can find the location of the htmldoc executable. Look for $fgrepCmd.
-   * %X% *Foswiki-4 and later* Configure the =$Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} = "/path/to/htmldoc";= using =configure= (in the =Extensions= section)
+   * Configure the =$Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} = "/path/to/htmldoc";= using =configure= (in the =Extensions= section) 
+      * %X% You *must* visit and save the Foswiki configuration at least once after installation to set a hidden variable in the =LocalSite.cfg= file
    * %T% Copy the preferences from above and paste them into %USERSWEB%.SitePreferences, or the !WebPreferences topic for a single web.
    * Test if the installation was successful: 
-      * Try loading [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%][this page]]
+      * Try loading [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%][this page]] 
+         * If you get a 404 - not found, make sure that a switchboard entry exists.
       * If it doesn't work, check your webserver logs for any problems. The most common issue is probably an htmldoc installation problem.
+
+---++ Configuration file settings
+The following settings should be built automatically by bin/configure.
+
+<verbatim>
+$Foswiki::cfg{Extensions}{GenPDFPlugin}{htmldocCmd} = '/usr/bin/htmldoc';
+$Foswiki::cfg{SwitchBoard}{genpdf} =  [ 'Foswiki::Plugins::GenPDF', 'viewPDF' ];
+</verbatim>
 
 ---++ Known Bugs
    * *Verbatim text runs off the page.* This is a limitation of HTMLDOC. Preformatted text may run off the edge of the page and be truncated.
@@ -156,8 +195,14 @@ __Note:__ You do not need to install anything on the browser to use this add-on.
 ---++ Add-On Info
 
 |  Add-on Author: | Foswiki:Main/BrianSpinar, Foswiki:Main/WadeTurland, Foswiki:Main/GeorgeClark |
+|  Copyright: | &copy; 2009, Foswiki Contributors |
+|  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
+|  Release: | %$RELEASE% |
+|  Version: | %$VERSION% |
 |  Change History: | |
-|  28 Feb 2009 | Added missing Config.spec file  Item1161: GenPDFAddOn result in "Not Found" page |
+|  2 Dec 2009 | Foswikitask:Item559 GenPDF doesnt output all images, Foswikitask:Item8081 support Foswiki macros in genpdf settings, Foswikitask:Item1599 clean up unnecessary links in document |
+|  2 Dec 2009 | Foswikitask:Item8090 unable to set pdftoclevels,  Foswikitask:Item2435 - correct DEPENDENCIES file,  Foswikitask:Item2084 Add support for topic revisions. |
+|  28 Feb 2009 | Added missing Config.spec file Item1161: GenPDFAddOn result in "Not Found" page |
 |  Feb 2009 | Conversion to Foswiki. Better &lt;a and &lt;img tag handling. Rewrote attachment handling to use Func:: API Rewrote recursive mode to use %SEARCH  |
 |  24 Dec 2008 | Added FIRSTPAGE, DESTINATION, TITLEDOC, PAGELAYOUT & PAGEMODE. fixed tag rendering, again. Now accepts either quote. Incorporated body extraction patch; made it work for title pages. removed outdated comment from example title page. Limited testing; use previous version if that makes you nervous. -- Foswiki:Main/TimotheLitt |
 |  02 Jul 2008 | added support for =VIEW_TEMPLATE= and =COVER=; fixed rendering of anchor and img tags; added =pdfstruct= parameter to print unstructured webpages as well; Foswiki:Main.MichaelDaum |
@@ -170,21 +215,19 @@ __Note:__ You do not need to install anything on the browser to use this add-on.
 |  11673 | Foswiki:Main/RickMach updated MIME type to pdf from x-pdf, fixed bug preventing disabling the TOC |
 |  9716 | Foswiki:Main/CrawfordCurrie added content-disposition header to files, so they download using a sensible file name |
 |  9683 | Foswiki:Main/CrawfordCurrie updated for Foswiki-4 |
-|  Version 0.6 (28 Jun 2005) | <ul><li>Less aggressive regex for removing foswikiNewLink spans so it doesn't break when using the Foswiki:Extensions.SpacedWikiWordPlugin</li><li>%T% Added 'recursive' preference to include chapters for all descendents of the base topic</li><li>Use File::Spec-&gt;tmpdir to specify the default directory for temporary files</li></ul> |
-|  Version 0.5 (16 Jun 2005) | <ul><li>Redirect to 'oops' URLs if permission denied or topic does not exist.</li><li>Removed foswikiNewLink spans from title page so they render as normal text (without the blue ? mark).</li><li>Fully qualify image/href URLs on the title page.</li><li>Changed temp files to use OO style 'new File::Temp;' for better code portability.</li></ul>  |
-|  Version 0.4 (13 Jun 2005) | <ul><li>Better security (now calls =system($Foswiki::htmldocCmd, @htmldocArgs)= )</li><li>Checks return code of htmldoc and returns an error on failure</li><li>Validation of preferences</li><li>%X% Preferences changed to comply with [[%SYSTEMWEB%.Plugins][Plugins]] standard</li><li>Better HTML3.2 compatibility for htmldoc 1.8.24 (downgrades a few elements)</li><li>Full integration of PDF META tags (optionally using 2 FORMFIELDs):</li><li><ul> <li>==%<nop>FORMFIELD{"Topic<nop>Headine"}%== for PDF Subject field</li> <li>==%<nop>FORMFIELD{"Key<nop>Words"}%== for PDF Keywords field</li> <li>all other PDF fields use topic info</li></ul></li><li>More htmldoc options (margins, permissions, numbered TOC, logoimage, headfootfont) using preferences</li><li>Removed ==%<nop>TOC%== fields so it only uses HTMLDOC's TOC</li><li>Title topic _and_ header/footer topics are now fully rendered</li><li>Fixed the heading shifting function</li><li>Fully qualify links, making the document portable</li><li>HTMLDOC output goes to a temp file instead of stdout</li><li>Temp files now use 'GenPDFAddOn' prefix. (Eg. /tmp/GenPDFAddOn1wr3C48ibd.html)</li></ul> |
-|  Version 0.3 (12 Apr 2005) | <ul><li>Added full Foswiki rendering to title topic page</li><li>Added Foswiki common variable expansion to header/footer topic page</li></ul> |
-|  Version 0.2 (26 Mar 2005) | <ul><li>Fixed bug with table of contents generation (i.e. it was always generated even if =pdftoclevels= was set to 0)</li><li>Now allow multiple =PDFSTART/PDFSTOP= pairs within a single page to include/exclude multiple sections of the same page</li><li>Added Brent Robert's fix to allow operation with latest version (1.8.24) of HTMLDOC</li></ul> |
-|  Version 0.1 (30 Jan 2005) | <ul><li>Initial version</li></ul> |
-|  CPAN Dependencies: | File::Temp (if for some reason you don't already have it installed ) |
-|  Other Dependencies: | HTMLDOC (http://www.htmldoc.org) |
-|  Perl Version: | 5.005 or above |
-|  License: | GPL |
-|  Add-on Home: | http://foswiki.org/Extensions/%TOPIC% |
-|  Feedback: | http://foswiki.org/Extensions/%TOPIC%Dev |
-|  Appraisal: | http://foswiki.org/Extensions/%TOPIC%Appraisal |
+|  Version 0.6 (28 Jun 2005) | <ul> <li>Less aggressive regex for removing foswikiNewLink spans so it doesn't break when using the Foswiki:Extensions.SpacedWikiWordPlugin</li> <li>%T% Added 'recursive' preference to include chapters for all descendents of the base topic</li> <li>Use File::Spec-&gt;tmpdir to specify the default directory for temporary files</li> </ul> |
+|  Version 0.5 (16 Jun 2005) | <ul> <li>Redirect to 'oops' URLs if permission denied or topic does not exist.</li> <li>Removed foswikiNewLink spans from title page so they render as normal text (without the blue ? mark).</li> <li>Fully qualify image/href URLs on the title page.</li> <li>Changed temp files to use OO style 'new File::Temp;' for better code portability.</li> </ul>  |
+|  Version 0.4 (13 Jun 2005) | <ul> <li>Better security (now calls =system($Foswiki::htmldocCmd, @htmldocArgs)= )</li> <li>Checks return code of htmldoc and returns an error on failure</li> <li>Validation of preferences</li> <li>%X% Preferences changed to comply with [[%SYSTEMWEB%.Plugins][Plugins]] standard</li> <li>Better HTML3.2 compatibility for htmldoc 1.8.24 (downgrades a few elements)</li> <li>Full integration of PDF META tags (optionally using 2 FORMFIELDs):</li> <li> <ul> <li>==%<nop>FORMFIELD{"Topic<nop>Headine"}%== for PDF Subject field</li> <li>==%<nop>FORMFIELD{"Key<nop>Words"}%== for PDF Keywords field</li> <li>all other PDF fields use topic info</li> </ul></li> <li>More htmldoc options (margins, permissions, numbered TOC, logoimage, headfootfont) using preferences</li> <li>Removed ==%<nop>TOC%== fields so it only uses HTMLDOC's TOC</li> <li>Title topic _and_ header/footer topics are now fully rendered</li> <li>Fixed the heading shifting function</li> <li>Fully qualify links, making the document portable</li> <li>HTMLDOC output goes to a temp file instead of stdout</li> <li>Temp files now use 'GenPDFAddOn' prefix. (Eg. /tmp/GenPDFAddOn1wr3C48ibd.html)</li> </ul> |
+|  Version 0.3 (12 Apr 2005) | <ul> <li>Added full Foswiki rendering to title topic page</li> <li>Added Foswiki common variable expansion to header/footer topic page</li> </ul> |
+|  Version 0.2 (26 Mar 2005) | <ul> <li>Fixed bug with table of contents generation (i.e. it was always generated even if =pdftoclevels= was set to 0)</li> <li>Now allow multiple =PDFSTART/PDFSTOP= pairs within a single page to include/exclude multiple sections of the same page</li> <li>Added Brent Robert's fix to allow operation with latest version (1.8.24) of HTMLDOC</li> </ul> |
+|  Version 0.1 (30 Jan 2005) | <ul> <li>Initial version</li> </ul> |
+|  Home: | http://foswiki.org/Extensions/%TOPIC% |
+|  Support: | http://foswiki.org/Support/%TOPIC% |
+|  Dependencies: | %$DEPENDENCIES% |
 
-__Related Topic:__ %SYSTEMWEB%.ContributedAddOns <!-- PDFSTOP -->
+
+__Related Topics:__ %SYSTEMWEB%.GenPDFAddOnDemo.txt, %SYSTEMWEB%.GenPDFExampleHeaderFooterTopic.txt, %SYSTEMWEB%.GenPDFExampleTitleTopic.txt
+<!-- PDFSTOP -->
 
 -- TWiki:Main/WadeTurland - 28 Jun 2005%BR% -- TWiki:Main/BrianSpinar - 12 Apr 2005
 
