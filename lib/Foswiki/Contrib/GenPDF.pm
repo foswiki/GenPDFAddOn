@@ -140,7 +140,7 @@ returns it.
 =cut
 
 sub _getRenderedView {
-    my ( $webName, $topic, $rev) = @_;
+    my ( $webName, $topic, $rev ) = @_;
 
     my $text = Foswiki::Func::readTopicText( $webName, $topic, $rev );
 
@@ -519,7 +519,7 @@ sub _fixImages {
         ( my $tvol, my $tdir, my $fname ) =
           File::Spec->splitpath( $tempfh->filename );
 
-        # For htmldoc commandline parameters, images are passed as a filename, not an html tag. 
+# For htmldoc commandline parameters, images are passed as a filename, not an html tag.
         if ($notag) {
             $html =~ s{
               <[iI][mM][gG]\s+                     # starting img tag plus space
@@ -531,7 +531,8 @@ sub _fixImages {
               ( (?: \s+ \w+ \s*=\s* $reAttrValue )* )   # 0 or more word = value - Assign to $3
               \s*/?>                                    # Close tag  Group 
              }{$tempfh}sgx;
-	 } else {
+        }
+        else {
             $html =~ s{
               <[iI][mM][gG]\s+                     # starting img tag plus space
               ( (?: \w+ \s*=\s* $reAttrValue \s+ )* )   # 0 or more word = value - Assign to $1
@@ -1067,11 +1068,13 @@ sub viewPDF {
         $tempdir = File::Spec->tmpdir();
     }
 
-    if ( $prefs{'recursive'}) {
+    if ( $prefs{'recursive'} ) {
         if ($rev) {
-            &_writeDebug("Recursive processing disabled - explicit topic revision specified.");
-            }
-        else {    
+            &_writeDebug(
+"Recursive processing disabled - explicit topic revision specified."
+            );
+        }
+        else {
             my $list = Foswiki::Func::expandCommonVariables(
                 '%SEARCH{ "^%META:TOPICPARENT"
                     type="regex"
@@ -1113,6 +1116,7 @@ sub viewPDF {
         my ( $cfh, $contentFile ) = tempfile(
             'GenPDFAddOnXXXXXXXXXX',
             DIR => $tempdir,
+
             #UNLINK => 0, # DEBUG
             SUFFIX => '.html'
         );
@@ -1191,17 +1195,17 @@ sub viewPDF {
     # (thanks to Brent Roberts for this fix)
     $ENV{HTMLDOC_NOCGI} = "yes";
 
-    my $htmldocArgs = join(' ', @htmldocArgs);
-    $htmldocArgs = Foswiki::Func::expandCommonVariables( $htmldocArgs,
-        $topic, $webName );
+    my $htmldocArgs = join( ' ', @htmldocArgs );
+    $htmldocArgs =
+      Foswiki::Func::expandCommonVariables( $htmldocArgs, $topic, $webName );
 
-    # Command line paramters need filenames, not image tags, so strip any tags and convert to filename.
-    $htmldocArgs = _fixImages($htmldocArgs,1);
+# Command line paramters need filenames, not image tags, so strip any tags and convert to filename.
+    $htmldocArgs = _fixImages( $htmldocArgs, 1 );
 
     _writeDebug("Calling htmldoc with args: $htmldocArgs");
 
-    my ( $Output, $exit ) = Foswiki::Sandbox->sysCommand(
-        $htmldocCmd . ' ' . $htmldocArgs );
+    my ( $Output, $exit ) =
+      Foswiki::Sandbox->sysCommand( $htmldocCmd . ' ' . $htmldocArgs );
     _writeDebug("htmldoc exited with $exit");
     if ( !-e $outputFile ) {
         die "error running htmldoc ($htmldocCmd): $Output\n";
