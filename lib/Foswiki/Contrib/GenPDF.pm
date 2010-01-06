@@ -246,6 +246,9 @@ sub _getHeaderFooterData {
 
     # Get a topic name without any whitespace
     $topic =~ s|\s||g;
+
+    ($webName, $topic) = Foswiki::Func::normalizeWebTopicName($webName, $topic);
+
     if ( $prefs{'hftopic'} ) {
         $text = Foswiki::Func::readTopicText( $webName, $topic );
     }
@@ -304,6 +307,12 @@ sub _createTitleFile {
     my $text  = '';
     my $topic = $prefs{'titletopic'};
 
+    ($webName, $topic) = Foswiki::Func::normalizeWebTopicName($webName, $topic);
+
+
+    _writeDebug("building title topic  $topic" ) if $prefs{'debug'};    # DEBUG
+
+
     # Get a topic name without any whitespace
     $topic =~ s|\s||g;
 
@@ -311,6 +320,7 @@ sub _createTitleFile {
     if ( $prefs{'titletopic'} ) {
         my $doc = $prefs{'titledoc'};
         if ($doc) {
+            _writeDebug("building title topic from an attachment  $webName, $topic, $doc" ) if $prefs{'debug'};    # DEBUG
             $text = Foswiki::Func::readAttachment( $webName, $topic, $doc );
             if ($text) {
                 $doc =~ m/^.*\.(\w+)$/;
@@ -328,7 +338,12 @@ sub _createTitleFile {
             $text = "Unable to read $webName.$topic/$doc for title";
         }
         else {
+            _writeDebug("building title topic from a topic  $webName, $topic" ) if $prefs{'debug'};    # DEBUG
             $text .= Foswiki::Func::readTopicText( $webName, $topic );
+            if ( $text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/ ) {
+                _writeDebug("Access exception reading   $webName, $topic" );    # DEBUG
+                }
+                         
         }
     }
 
@@ -502,9 +517,11 @@ sub _fixImages {
             my $data =
               Foswiki::Func::readAttachment( $imgInfo->{web}, $imgInfo->{topic},
                 $imgInfo->{file} );
-            binmode $tempfh;
-            print $tempfh $data;    # copy the attachment to the temporary file
-            close $tempfh;
+            if ($data) {
+                binmode $tempfh;
+                print $tempfh $data;    # copy the attachment to the temporary file
+                close $tempfh;
+            }
         }
         catch Foswiki::AccessControlException with {
 
