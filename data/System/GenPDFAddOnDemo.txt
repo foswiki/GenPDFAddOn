@@ -33,6 +33,7 @@ Some of the cool features are:
    * Images are included
    * Margins can be defined
    * PDF permissions can be restricted (this has 'print,no-copy' so you can't copy and paste the text)
+   * Recursive rendering of child topics, such as GenPDFAddOnDemoChild
 
 ---++ Limitations
 There are a few limitations, like
