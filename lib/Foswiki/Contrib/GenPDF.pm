@@ -519,15 +519,19 @@ sub _fixImages {
         push @tempfiles, $tempfh;  # Save the temp file handle for later cleanup
 
         try {
-
-#print STDERR "Read attachment".$imgInfo->{web}." ".$imgInfo->{topic}." ".$imgInfo->{file};  #DEBUG
+            _writeDebug("Read attachment".$imgInfo->{web}." ".$imgInfo->{topic}." ".$imgInfo->{file}) if $prefs{'debug'};  #DEBUG
             my $data =
               Foswiki::Func::readAttachment( $imgInfo->{web}, $imgInfo->{topic},
                 $imgInfo->{file} );
-            if ($data) {
+            if ($data) {          # Don't fault for missing / empty files.
                 binmode $tempfh;
                 print $tempfh $data;    # copy the attachment to the temporary file
                 close $tempfh;
+            } else {
+                &Foswiki::Func::writeDebug( "Empty or missing image file "
+                  . $imgInfo->{web} . " "
+                  . $imgInfo->{topic} . " "
+                  . $imgInfo->{file} );
             }
         }
         catch Foswiki::AccessControlException with {
