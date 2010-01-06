@@ -374,6 +374,13 @@ sub _createTitleFile {
     $text =~ s/&[lr]dquo;/"/g;    #"
     $text =~ s/&[lr]squo;/'/g;    #'
     $text =~ s/&brvbar;/|/g;
+    # replace arrows
+    $text =~ s/&rarr;/->/g;
+    $text =~ s/&larr;/<-/g;
+    $text =~ s/&harr;/<->/g;
+    $text =~ s/&rArr;/=>/g;
+    $text =~ s/&lArr;/<=/g;
+    $text =~ s/&hArr;/<=>/g;
 
 # convert FoswikiNewLinks to normal text
 # FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
@@ -666,6 +673,13 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     $html =~ s/&[lr]dquo;/"/g;    #"
     $html =~ s/&[lr]squo;/'/g;    #'
     $html =~ s/&brvbar;/|/g;
+    # replace arrows
+    $html =~ s/&rarr;/->/g;
+    $html =~ s/&larr;/<-/g;
+    $html =~ s/&harr;/<->/g;
+    $html =~ s/&rArr;/=>/g;
+    $html =~ s/&lArr;/<=/g;
+    $html =~ s/&hArr;/<=>/g;
 
 # convert FoswikiNewLinks to normal text
 # FIXME - should this be a preference? - should use setPreferencesValue($name, $val) to set NEWTOPICLINK
@@ -856,6 +870,10 @@ sub _getPrefs {
       || '';
     $prefs{'tocfooter'} = TOCFOOTER
       unless ( $prefs{'tocfooter'} =~ /^[\.\/:1aAcCdDhiIltT]{3}$/ );
+
+    # TOC Title
+    $prefs{'toctitle'} = $query->param('pdftoctitle')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TOCTITLE");
 
     # Get some other parameters and set reasonable defaults unless not supplied
     $prefs{'format'} =
@@ -1180,9 +1198,11 @@ sub viewPDF {
     }
     else {
         push @htmldocArgs, "--numbered" if $prefs{'numbered'};
-        push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}", "--tocheader",
-          "$prefs{'tocheader'}", "--tocfooter", "$prefs{'tocfooter'}",
-          "--firstpage", $prefs{'firstpage'};
+        push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}", 
+                           "--tocheader", "$prefs{'tocheader'}", 
+                           "--tocfooter", "$prefs{'tocfooter'}",
+                           "--firstpage", "$prefs{'firstpage'}";
+        push @htmldocArgs, "--toctitle",  "$prefs{'toctitle'}" if $prefs{'toctitle'}; 
     }
     push @htmldocArgs, "--duplex" if $prefs{'duplex'};
     push @htmldocArgs, "--bodyimage", "$prefs{'bodyimage'}"
