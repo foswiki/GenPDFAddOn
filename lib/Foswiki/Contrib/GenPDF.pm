@@ -247,7 +247,8 @@ sub _getHeaderFooterData {
     # Get a topic name without any whitespace
     $topic =~ s|\s||g;
 
-    ($webName, $topic) = Foswiki::Func::normalizeWebTopicName($webName, $topic);
+    ( $webName, $topic ) =
+      Foswiki::Func::normalizeWebTopicName( $webName, $topic );
 
     if ( $prefs{'hftopic'} ) {
         $text = Foswiki::Func::readTopicText( $webName, $topic );
@@ -307,11 +308,10 @@ sub _createTitleFile {
     my $text  = '';
     my $topic = $prefs{'titletopic'};
 
-    ($webName, $topic) = Foswiki::Func::normalizeWebTopicName($webName, $topic);
+    ( $webName, $topic ) =
+      Foswiki::Func::normalizeWebTopicName( $webName, $topic );
 
-
-    _writeDebug("building title topic  $topic" ) if $prefs{'debug'};    # DEBUG
-
+    _writeDebug("building title topic  $topic") if $prefs{'debug'};    # DEBUG
 
     # Get a topic name without any whitespace
     $topic =~ s|\s||g;
@@ -320,7 +320,9 @@ sub _createTitleFile {
     if ( $prefs{'titletopic'} ) {
         my $doc = $prefs{'titledoc'};
         if ($doc) {
-            _writeDebug("building title topic from an attachment  $webName, $topic, $doc" ) if $prefs{'debug'};    # DEBUG
+            _writeDebug(
+"building title topic from an attachment  $webName, $topic, $doc"
+            ) if $prefs{'debug'};                                      # DEBUG
             $text = Foswiki::Func::readAttachment( $webName, $topic, $doc );
             if ($text) {
                 $doc =~ m/^.*\.(\w+)$/;
@@ -338,12 +340,14 @@ sub _createTitleFile {
             $text = "Unable to read $webName.$topic/$doc for title";
         }
         else {
-            _writeDebug("building title topic from a topic  $webName, $topic" ) if $prefs{'debug'};    # DEBUG
+            _writeDebug("building title topic from a topic  $webName, $topic")
+              if $prefs{'debug'};    # DEBUG
             $text .= Foswiki::Func::readTopicText( $webName, $topic );
             if ( $text =~ /^http.*\/.*\/oops\/.*oopsaccessview$/ ) {
-                _writeDebug("Access exception reading   $webName, $topic" );    # DEBUG
-                }
-                         
+                _writeDebug("Access exception reading   $webName, $topic")
+                  ;                  # DEBUG
+            }
+
         }
     }
 
@@ -374,6 +378,7 @@ sub _createTitleFile {
     $text =~ s/&[lr]dquo;/"/g;    #"
     $text =~ s/&[lr]squo;/'/g;    #'
     $text =~ s/&brvbar;/|/g;
+
     # replace arrows
     $text =~ s/&rarr;/->/g;
     $text =~ s/&larr;/<-/g;
@@ -435,18 +440,32 @@ Functionality from original PDF script.
 =cut
 
 sub _shiftHeaders {
-    my ($html) = @_;
+    my ( $html, $shift ) = @_;
 
-    if ( $prefs{'shift'} =~ /^[+-]?\d+$/ ) {
+    if ( $shift != 0 ) {
         my $newHead;
+        _writeDebug("-- shifting headers $shift ");
 
 # You may want to modify next line if you do not want to shift _all_ headers.
 # I leave for example all header that contain a digit folowed by a point.
 # Look like this:
 # $html =~ s&<h(\d)>((?:(?!(<h\d>|\d\.)).)*)</h\d>&'<h'.($newHead = ($1+$sh)>6?6:($1+$sh)<1?1:($1+$sh)).'>'.$2.'</h'.($newHead).'>'&gse;
 # NOTE - htmldoc allows headers up to <h15>
-        $html =~
-s|<h(\d)>((?:(?!<h\d>).)*)</h\d>|'<h'.($newHead = ($1+$prefs{'shift'})>15?15:($1+$prefs{'shift'})<1?1:($1+$prefs{'shift'})).'>'.$2.'</h'.($newHead).'>'|gsei;
+
+        $html =~ s{
+             <h                                      # starting header tag
+             ([\d]{1,2})                             # $1 is 1 or 2 digits
+             (.*?)                                   # 0 or more word = value - Assign to $2
+             >                                       # End the tag
+             (.*?)                                    # Non-greedy string to $3  Need 0 or more - seeing some empty headings.
+             </h\1>                                  # End tag with backref
+          }{'<h'.
+             ($newHead = ($1+$shift) > 15 ? 15 :     # Trinary - if heading >= 15, then set it to 15 else
+               ($1+$shift) < 1 ? 1 : ($1+$shift)) .    # if heading less than 1, set to 1.
+             $2 . '>' .                              # Any style attributes and close tag
+             $3 .                                    # The title
+             '</h' . ($newHead) .  '>'               # Close the title.
+          }sgxei;
     }
 
     return $html;
@@ -519,19 +538,24 @@ sub _fixImages {
         push @tempfiles, $tempfh;  # Save the temp file handle for later cleanup
 
         try {
-            _writeDebug("Read attachment".$imgInfo->{web}." ".$imgInfo->{topic}." ".$imgInfo->{file}) if $prefs{'debug'};  #DEBUG
+            _writeDebug( "Read attachment"
+                  . $imgInfo->{web} . " "
+                  . $imgInfo->{topic} . " "
+                  . $imgInfo->{file} )
+              if $prefs{'debug'};    #DEBUG
             my $data =
               Foswiki::Func::readAttachment( $imgInfo->{web}, $imgInfo->{topic},
                 $imgInfo->{file} );
-            if ($data) {          # Don't fault for missing / empty files.
+            if ($data) {             # Don't fault for missing / empty files.
                 binmode $tempfh;
-                print $tempfh $data;    # copy the attachment to the temporary file
+                print $tempfh $data; # copy the attachment to the temporary file
                 close $tempfh;
-            } else {
+            }
+            else {
                 &Foswiki::Func::writeDebug( "Empty or missing image file "
-                  . $imgInfo->{web} . " "
-                  . $imgInfo->{topic} . " "
-                  . $imgInfo->{file} );
+                      . $imgInfo->{web} . " "
+                      . $imgInfo->{topic} . " "
+                      . $imgInfo->{file} );
             }
         }
         catch Foswiki::AccessControlException with {
@@ -592,13 +616,15 @@ isn't present. Returns the modified html.
 =cut
 
 sub _fixHtml {
-    my ( $html, $topic, $webName, $refTopics ) = @_;
+    my ( $html, $topic, $webName, $refTopics, $depth ) = @_;
+    _writeDebug("fixHtml called for $topic depth $depth");
+    #_writeDebug("-----DUMP----\n$html\n----END DUMP----");
     my $title =
       Foswiki::Func::expandCommonVariables( $prefs{'title'}, $topic, $webName );
     $title = Foswiki::Func::renderText($title);
     $title =~ s/<.*?>//gs;
 
-    #print STDERR "title: '$title'\n"; # DEBUG
+    _writeDebug("title: $title");    # DEBUG
 
     # Keep the body only.  A new header will be added later.
     $html =~ s%.*<body[^>]*>%%is;
@@ -620,51 +646,76 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     $html =~ s/%META:\w+{.*?}%//gs;
 
     # Prepend META tags for PDF meta info - may be redefined later by topic text
-    my $meta =
+    my $meta = '';
+    if ( $depth == 0 ) {    # Only add meta tags for root level topics
+        $meta =
 '<META NAME="AUTHOR" CONTENT="%SPACEOUT{%REVINFO{format="$wikiname"}%}%"/>'
-      ;    # Specifies the document author.
-           #
-     # As of htmldoc 1.8.27, it  appends the copyright statement into the Author metadata. This can break
-     # some content management systems.  Copyright metadata can be excluded by setting to '0'.
-     #
-    $meta .= '<META NAME="COPYRIGHT" CONTENT="' . $prefs{'copyright'} . '"/>'
-      if $prefs{'copyright'};    # Specifies the document copyright.
-    $meta .=
-      '<META NAME="DOCNUMBER" CONTENT="%REVINFO{format="r1.$rev - $date"}%"/>'
-      ;                          # Specifies the document number.
-    $meta .= '<META NAME="GENERATOR" CONTENT="%WIKITOOLNAME% %WIKIVERSION%"/>'
-      ;    # Specifies the application that generated the HTML file.
-    $meta .=
-        '<META NAME="KEYWORDS" CONTENT="'
-      . $prefs{'keywords'}
-      . '"/>';    # Specifies document search keywords.
-    $meta .=
-        '<META NAME="SUBJECT" CONTENT="'
-      . $prefs{'subject'}
-      . '"/>';    # Specifies document subject.
-    $meta = Foswiki::Func::expandCommonVariables( $meta, $topic, $webName );
-    $meta =~ s/<(?!META).*?>//g;    # remove any tags from inside the <META />
-    $meta = Foswiki::Func::renderText($meta);
-    $meta =~ s/<(?!META).*?>//g;    # remove any tags from inside the <META />
-         # FIXME - renderText converts the <META> tags to &lt;META&gt;
-         # if the CONTENT contains anchor tags (trying to be XHTML compliant)
-    $meta =~ s/&lt;/</g;
-    $meta =~ s/&gt;/>/g;
+          ;                 # Specifies the document author.
+                            #
+         # As of htmldoc 1.8.27, it  appends the copyright statement into the Author metadata. This can break
+         # some content management systems.  Copyright metadata can be excluded by setting to '0'.
+         #
+        $meta .=
+          '<META NAME="COPYRIGHT" CONTENT="' . $prefs{'copyright'} . '"/>'
+          if $prefs{'copyright'};    # Specifies the document copyright.
+        $meta .=
+'<META NAME="DOCNUMBER" CONTENT="%REVINFO{format="r1.$rev - $date"}%"/>'
+          ;                          # Specifies the document number.
+        $meta .=
+          '<META NAME="GENERATOR" CONTENT="%WIKITOOLNAME% %WIKIVERSION%"/>'
+          ;    # Specifies the application that generated the HTML file.
+        $meta .=
+            '<META NAME="KEYWORDS" CONTENT="'
+          . $prefs{'keywords'}
+          . '"/>';    # Specifies document search keywords.
+        $meta .=
+            '<META NAME="SUBJECT" CONTENT="'
+          . $prefs{'subject'}
+          . '"/>';    # Specifies document subject.
+        $meta = Foswiki::Func::expandCommonVariables( $meta, $topic, $webName );
+        $meta =~ s/<(?!META).*?>//g;  # remove any tags from inside the <META />
+        $meta = Foswiki::Func::renderText($meta);
+        $meta =~ s/<(?!META).*?>//g;  # remove any tags from inside the <META />
+            # FIXME - renderText converts the <META> tags to &lt;META&gt;
+            # if the CONTENT contains anchor tags (trying to be XHTML compliant)
+        $meta =~ s/&lt;/</g;
+        $meta =~ s/&gt;/>/g;
+    }
 
     #print STDERR "meta: '$meta'\n"; # DEBUG
 
-    $html = _shiftHeaders($html);
+    # Remove empty headings - print skin inserts for some reason.
+    $html =~ s{
+          <h                                      # starting header tag 
+          ([\d]{1,2})                             # $1 is 1 or 2 digits
+          >                                       # End the tag  
+          </h\1>                                  # End tag with backref
+          }{}sgxi;
+
+# If hard coded values set for header shifting, use it, otherwise
+# if shift is set to "auto", shift the headers by the recursive "depth" of the topic.
+# (Depth = 0 for root level topic.)
+    my $shift = 0;
+
+    if ( $prefs{'shift'} =~ /^[+-]?\d+$/ ) {
+        $shift = $prefs{'shift'};
+    }
+    else {
+        if ( $prefs{'shift'} eq "auto" ) {
+            $shift = $depth;
+        }
+    }
+    $html = _shiftHeaders( $html, $shift );
 
   # Check if any headings are present - if none, can't generate a structured PDF
     $hasHeadings = ( $html =~ /<h[2-6]>/is ) unless ($hasHeadings);
 
     # Insert an <h1> header if one isn't present
     # and a target (after the <h1>) for this topic so it gets a bookmark
-    if ( $html !~ /<h1>/is ) {
-        $html = "<h1>$topic</h1><a name=\"$topic\"> </a>$html";
-    }
-    else {
-        $html = "<a name=\"$topic\"> </a>$html";
+    my $hn = $depth + 1;
+    if ( $html !~ /<h$hn/is ) {
+        _writeDebug(" Search for <h$hn failed - inseerting <h$hn>$topic</$hn>");
+        $html = "<h$hn>$topic</h$hn><a name=\"$topic\"> </a>$html";
     }
 
     # htmldoc reads <title> for PDF Title meta-info
@@ -677,6 +728,7 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     $html =~ s/&[lr]dquo;/"/g;    #"
     $html =~ s/&[lr]squo;/'/g;    #'
     $html =~ s/&brvbar;/|/g;
+
     # replace arrows
     $html =~ s/&rarr;/->/g;
     $html =~ s/&larr;/<-/g;
@@ -722,6 +774,7 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     # change <li type=> to <ol type=>
     $html =~ s/<ol>\s+<li\s+type="([AaIi])">/<ol type="$1">\n<li>/g;
     $html =~ s/<li\s+type="[AaIi]">/<li>/g;
+    #_writeDebug("-----RETURN DUMP----\n$html\n----END DUMP----");
 
     return $html;
 }
@@ -1132,21 +1185,22 @@ sub viewPDF {
     }
 
     my @topics;
+    my @depths;
     push @topics, $topic;
-    _depthFirst( $topic, \@topics );
-
-    # We shift headers here so every topic gets its own <h1>$topic</h1>
-    $prefs{'shift'} += 1 if ( scalar @topics > 1 );
+    push @depths, 0;
+    _depthFirst( $topic, \@topics, \@depths, 1 );
 
     my @contentFiles;
     for $topic (@topics) {
 
-        _writeDebug("preparing $topic");    # DEBUG
-                                            # Get ready to display HTML topic
+        my $depth = shift(@depths);
+        my $dep = $depth || "x";
+        _writeDebug("preparing $topic depth $dep");    # DEBUG
+            # Get ready to display HTML topic
         my $htmlData = _getRenderedView( $webName, $topic, $rev );
 
 # Fix topic text (i.e. correct any problems with the HTML that htmldoc might not like
-        $htmlData = _fixHtml( $htmlData, $topic, $webName, \@topics );
+        $htmlData = _fixHtml( $htmlData, $topic, $webName, \@topics, $depth );
 
         # The data returned also incluides the header. Remove it.
         $htmlData =~ s|.*(<!DOCTYPE)|$1|s;
@@ -1202,11 +1256,12 @@ sub viewPDF {
     }
     else {
         push @htmldocArgs, "--numbered" if $prefs{'numbered'};
-        push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}", 
-                           "--tocheader", "$prefs{'tocheader'}", 
-                           "--tocfooter", "$prefs{'tocfooter'}",
-                           "--firstpage", "$prefs{'firstpage'}";
-        push @htmldocArgs, "--toctitle",  "$prefs{'toctitle'}" if $prefs{'toctitle'}; 
+        push @htmldocArgs, "--toclevels", "$prefs{'toclevels'}",
+          "--tocheader", "$prefs{'tocheader'}",
+          "--tocfooter", "$prefs{'tocfooter'}",
+          "--firstpage", "$prefs{'firstpage'}";
+        push @htmldocArgs, "--toctitle", "$prefs{'toctitle'}"
+          if $prefs{'toctitle'};
     }
     push @htmldocArgs, "--duplex" if $prefs{'duplex'};
     push @htmldocArgs, "--bodyimage", "$prefs{'bodyimage'}"
@@ -1316,16 +1371,41 @@ sub _writeDebug {
 sub _depthFirst {
     my $parent = shift;
     my $topics = shift;    # ref to @topics
-         # the grep gets around a perl dereferencing bug when using strict refs
+    my $depths = shift;    # ref to @depths
+    my $depth  = shift;
+
+    # the grep gets around a perl dereferencing bug when using strict refs
     my @children = grep { $_; } @{ $tree{$parent} };
     for ( sort @children ) {
 
-        _writeDebug("new child of $parent: '$_'") if $prefs{'debug'};    # DEBUG
+        _writeDebug("new child of $parent: '$_' Depth $depth ")
+          if $prefs{'debug'};    # DEBUG
         push @$topics, $_;
+
+        my $reset = Foswiki::Func::expandCommonVariables(
+            '%SEARCH{ "^<!-- NEW CHAPTER -->"
+                type="regex"
+                topic="' . $_ . '"
+                format="$topic"
+                zeroresults="off"
+                header=""
+                nonoise="on"}%'
+        );
+        _writeDebug(" Search returns $reset for topic $_");
+        my $tempdepth;
+
+       if ($reset) {
+           $tempdepth = 0;
+           _writeDebug("RESET Depth of $_ to 0");
+       } else {
+           $tempdepth = $depth;
+           _writeDebug("Depth of $_ left at $depth");
+       }
+        push @$depths, $tempdepth;
         if ( defined $tree{$_} ) {
 
             # this child is also a parent so bring them in too
-            _depthFirst( $_, $topics );
+            _depthFirst( $_, $topics, $depths, $tempdepth + 1 );
         }
     }
 }
