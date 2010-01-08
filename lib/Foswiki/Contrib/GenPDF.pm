@@ -1061,6 +1061,16 @@ sub _getPrefs {
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADERSHIFT")
       || HEADERSHIFT;
 
+    $prefs{'compress'} =
+         $query->param('pdfcompress')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_COMPRESS")
+      || '';
+
+    $prefs{'jpegquality'} =
+         $query->param('pdfjpegquality')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_JPEGQUALITY")
+      || '';
+
     $prefs{'permissions'} =
          $query->param('pdfpermissions')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_PERMISSIONS")
@@ -1285,6 +1295,10 @@ sub viewPDF {
     push @htmldocArgs, "--pagelayout", "$prefs{'pagelayout'}"
       if $prefs{'pagelayout'};
     push @htmldocArgs, "--pagemode", "$prefs{'pagemode'}" if $prefs{'pagemode'};
+    push @htmldocArgs, "--no-compression" if ($prefs{'compress'} eq 'none');
+    push @htmldocArgs, "--compression=$prefs{'compress'}" if  ($prefs{'compress'} =~ /^\d$/);
+    push @htmldocArgs, "--no-jpeg" if ($prefs{'jpegquality'} eq 'none');
+    push @htmldocArgs, "--jpeg=$prefs{'jpegquality'}" if  ($prefs{'jpegquality'} =~ /^\d{1,2}$/);
     push @htmldocArgs, @contentFiles;
 
     # Disable CGI feature of newer versions of htmldoc
