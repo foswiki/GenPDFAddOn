@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" date="1234067891" format="1.1" version="1.2"}%
+%META:TOPICINFO{author="ProjectContributor" date="1234067891" format="1.1" version="1.5"}%
 %META:TOPICPARENT{name="GenPDFAddOn"}%
 %TOC%
 =&lt;!-- PDFSTART --&gt;  inserted here to avoid a blank page for the Foswiki TOC=
@@ -7,16 +7,17 @@
 
 This is a sample document to show what can be achieved with the GenPDFAddOn Plugin.
 
-Here are some headings - note that &lt;h1&gt; level 1 headers always appear on a new page.
+Here are some headings - note that &lt;h1&gt; level 1 headers always appear on
+a new page and is treated as a new chapter in the PDF.  So the Level 1 heading
+is not included to avoid the extra chapter.
 
----+ Level 1 Heading
 ---++ Level 2 Heading
 ---+++ Level 3 Heading
 ---++++ Level 4 Heading
 ---+++++ Level 5 Heading
 ---++++++ Level 6 Heading
 Foswiki only goes this far :-( HTMLDOC goes to level 15 :-) %BR%
-<!-- <h7>Level 7 Heading</h7>%BR%
+<h7>Level 7 Heading</h7>%BR%
 <h8>Level 8 Heading</h8>%BR%
 <h9>Level 9 Heading</h9>%BR%
 <h10>Level 10 Heading</h10>%BR%
@@ -24,7 +25,7 @@ Foswiki only goes this far :-( HTMLDOC goes to level 15 :-) %BR%
 <h12>Level 12 Heading</h12>%BR%
 <h13>Level 13 Heading</h13>%BR%
 <h14>Level 14 Heading</h14>%BR%
-<h15>Level 15 Heading</h15>%BR% -->
+<h15>Level 15 Heading</h15>%BR% 
 
 ---++ Features
 Some of the cool features are:
@@ -45,10 +46,10 @@ Really long lines of text in verbatim blocks will run off the edge of the page u
 | *Overflowing tables* ||
 | Tables_can_overflow_if_you_have_long_words_in_the_cells | If_you_generate_a_page_for_the_GenPDFAddOn_topic,_you_will_see_that_text_will_overflow_off_the_page,_similar_to_verbatim_text_above. |
 
----+ Settings for this topic
+---++ Settings for this topic
 This topic includes the following settings:
 
----++ Title Topic
+---+++ Title Topic
 <verbatim>
 <p>
 &nbsp;<br/>
@@ -103,8 +104,9 @@ is strictly prohibited.
 Generated: %DISPLAYTIME%
 </verbatim>
 
----++ Headers/Footers Topic
+---+++ Headers/Footers Topic
 <verbatim>
+<!-- NEW CHAPTER -->
 <!-- HEADER LEFT "%BASETOPIC%" -->
 <!-- HEADER CENTER "%FORMFIELD{"DocumentClassification" topic="%WEB%.%BASETOPIC%"}%" -->
 <!-- HEADER RIGHT "&copy; Your Company %WEB%" -->
@@ -113,7 +115,7 @@ Generated: %DISPLAYTIME%
 <!-- FOOTER RIGHT "$PAGE(1)" -->
 </verbatim>
 
----++ Preferences
+---+++ Preferences
 <verbatim>
    * Foswiki.GenPDFAddOn Settings
       * Set GENPDFADDON_BANNER = Our Slogan %ORANGE%Rocks!!!%ENDCOLOR%
@@ -137,7 +139,7 @@ Generated: %DISPLAYTIME%
       * Set GENPDFADDON_WIDTH = 1060
 </verbatim>
 
----++ Form fields
+---+++ Form fields
 <verbatim>
 % META:FORM{name="DocumentClassificationForm"}%
 % META:FIELD{name="DocumentClassification" title="DocumentClassification" value="CompanyConfidential"}%
@@ -145,6 +147,12 @@ Generated: %DISPLAYTIME%
 % META:FIELD{name="TopicHeadline" title="TopicHeadline" value="A look at what the GenPDFAddOn plugin can do"}%
 % META:FIELD{name="KeyWords" title="KeyWords" value="PDF, plugin, acrobat"}%
 </verbatim>
+
+---+ Child Topics
+If a PDF of this topic is generated using the pdfrecursive option with
+pdfheadershift set to auto, then the child topics will appear after this
+header.
+
 <!-- PDFSTOP -->
 =&lt;!-- PDFSTOP --&gt;  inserted here to stop before the signature=
 

@@ -47,8 +47,6 @@ Also, htmldoc must be able to download it so be sure to use =%<nop>PUBURL%= not 
 &nbsp;%BR%
 &nbsp;%BR%
 &nbsp;%BR%
-&nbsp;%BR%
-&nbsp;%BR%
 | *DocumentClassification* | %FORMFIELD{"DocumentClassification" topic="%WEB%.%BASETOPIC%"}% |
 | *DocumentType* | %FORMFIELD{"DocumentType" topic="%WEB%.%BASETOPIC%"}% |
 &nbsp;%BR%
