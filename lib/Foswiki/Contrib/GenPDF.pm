@@ -57,8 +57,8 @@ package Foswiki::Contrib::GenPDF;
 use strict;
 
 use CGI;
-use Foswiki::Func;
-use Foswiki::UI::View;
+use Foswiki::Func    ();    # The plugins API
+use Foswiki::Plugins ();    # For the API version
 use File::Temp qw( tempfile );
 use Error qw( :try );
 
