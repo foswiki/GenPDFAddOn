@@ -618,6 +618,7 @@ isn't present. Returns the modified html.
 sub _fixHtml {
     my ( $html, $topic, $webName, $refTopics, $depth ) = @_;
     _writeDebug("fixHtml called for $topic depth $depth");
+
     #_writeDebug("-----DUMP----\n$html\n----END DUMP----");
     my $title =
       Foswiki::Func::expandCommonVariables( $prefs{'title'}, $topic, $webName );
@@ -774,6 +775,7 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     # change <li type=> to <ol type=>
     $html =~ s/<ol>\s+<li\s+type="([AaIi])">/<ol type="$1">\n<li>/g;
     $html =~ s/<li\s+type="[AaIi]">/<li>/g;
+
     #_writeDebug("-----RETURN DUMP----\n$html\n----END DUMP----");
 
     return $html;
@@ -1295,10 +1297,12 @@ sub viewPDF {
     push @htmldocArgs, "--pagelayout", "$prefs{'pagelayout'}"
       if $prefs{'pagelayout'};
     push @htmldocArgs, "--pagemode", "$prefs{'pagemode'}" if $prefs{'pagemode'};
-    push @htmldocArgs, "--no-compression" if ($prefs{'compress'} eq 'none');
-    push @htmldocArgs, "--compression=$prefs{'compress'}" if  ($prefs{'compress'} =~ /^\d$/);
-    push @htmldocArgs, "--no-jpeg" if ($prefs{'jpegquality'} eq 'none');
-    push @htmldocArgs, "--jpeg=$prefs{'jpegquality'}" if  ($prefs{'jpegquality'} =~ /^\d{1,2}$/);
+    push @htmldocArgs, "--no-compression" if ( $prefs{'compress'} eq 'none' );
+    push @htmldocArgs, "--compression=$prefs{'compress'}"
+      if ( $prefs{'compress'} =~ /^\d$/ );
+    push @htmldocArgs, "--no-jpeg" if ( $prefs{'jpegquality'} eq 'none' );
+    push @htmldocArgs, "--jpeg=$prefs{'jpegquality'}"
+      if ( $prefs{'jpegquality'} =~ /^\d{1,2}$/ );
     push @htmldocArgs, @contentFiles;
 
     # Disable CGI feature of newer versions of htmldoc
@@ -1408,13 +1412,14 @@ sub _depthFirst {
         _writeDebug(" Search returns $reset for topic $_");
         my $tempdepth;
 
-       if ($reset) {
-           $tempdepth = 0;
-           _writeDebug("RESET Depth of $_ to 0");
-       } else {
-           $tempdepth = $depth;
-           _writeDebug("Depth of $_ left at $depth");
-       }
+        if ($reset) {
+            $tempdepth = 0;
+            _writeDebug("RESET Depth of $_ to 0");
+        }
+        else {
+            $tempdepth = $depth;
+            _writeDebug("Depth of $_ left at $depth");
+        }
         push @$depths, $tempdepth;
         if ( defined $tree{$_} ) {
 
