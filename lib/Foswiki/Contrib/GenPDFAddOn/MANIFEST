@@ -5,6 +5,10 @@ data/System/GenPDFAddOnDemoChild.txt 0644  Demo child for recursive rendering
 data/System/GenPDFAddOnDemoChild2.txt 0644 Demo child for recursive rendering
 data/System/GenPDFExampleHeaderFooterTopic.txt 0644 
 data/System/GenPDFExampleTitleTopic.txt 0644
+pub/System/GenPDFAddOn/pdf-32.gif 0644
+pub/System/GenPDFAddOn/pdf-32.png 0644
+pub/System/GenPDFAddOn/pdf-64.gif 0644
+pub/System/GenPDFAddOn/pdf-64.png 0644
 htmldoc_force_header.patch 0644
 lib/Foswiki/Contrib/GenPDF.pm 0644
 lib/Foswiki/Contrib/GenPDFAddOn/Config.spec 0755

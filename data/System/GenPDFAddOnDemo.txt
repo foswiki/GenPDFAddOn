@@ -3,9 +3,16 @@
 %TOC%
 =&lt;!-- PDFSTART --&gt;  inserted here to avoid a blank page for the Foswiki TOC=
 <!-- PDFSTART --> 
----+ GenPDFAddOnDemo
+---+ GenPDFAddOnDemo (L1 Heading)
 
 This is a sample document to show what can be achieved with the GenPDFAddOn Plugin.
+
+   * [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%][Generate a PDF of this page]]
+   * [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%?pdfrecursive=1][Generate a PDF of this page and child topics]].  _Note that each L1 heading and each Child topic is a separate chapter in the PDF._
+   * [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%?pdfrecursive=1;pdfheadershift=auto][Generate a PDF with auto header shifting]] _Only L1 headings become chapters.  Child topics are properly indented._
+
+<!-- NEW CHAPTER -->
+   * [[%SCRIPTURL{genpdf}%/%WEB%/GenPDFAddOn?pdfrecursive=1;pdfheadershift=auto][Generate a PDF of the parent GenPDFAddOn Topic]] In this example, the GenPDFAddOnDemo topic will begin a new chapter instead of being automatically indented below the GenPDFAddOn topic.  This topic contains the =&lt;!-- NEW CHAPTER --&gt;= comment which resets heading shifting back to the parent level.
 
 Here are some headings - note that &lt;h1&gt; level 1 headers always appear on
 a new page and is treated as a new chapter in the PDF.  So the Level 1 heading
@@ -106,7 +113,6 @@ Generated: %DISPLAYTIME%
 
 ---+++ Headers/Footers Topic
 <verbatim>
-<!-- NEW CHAPTER -->
 <!-- HEADER LEFT "%BASETOPIC%" -->
 <!-- HEADER CENTER "%FORMFIELD{"DocumentClassification" topic="%WEB%.%BASETOPIC%"}%" -->
 <!-- HEADER RIGHT "&copy; Your Company %WEB%" -->
@@ -124,7 +130,7 @@ Generated: %DISPLAYTIME%
       * Set GENPDFADDON_TITLETOPIC = %SYSTEMWEB%.GenPDFExampleTitleTopic
       * Set GENPDFADDON_HEADERTOPIC = %SYSTEMWEB%.GenPDFExampleHeaderFooterTopic
       * Set GENPDFADDON_HEADFOOTFONT = helvetica-bold
-      * Set GENPDFADDON_LOGOIMAGE = http://localhost/Foswiki/pub/Foswiki/ProjectLogos/FoswikiRobot46x50.gif
+      * Set GENPDFADDON_LOGOIMAGE = %ICON{pdf}%
       * Set GENPDFADDON_FORMAT = pdf14
       * Set GENPDFADDON_PERMISSIONS = print,no-copy
       * Set GENPDFADDON_ORIENTATION = portrait
@@ -148,7 +154,7 @@ Generated: %DISPLAYTIME%
 % META:FIELD{name="KeyWords" title="KeyWords" value="PDF, plugin, acrobat"}%
 </verbatim>
 
----+ Child Topics
+---+ Child Topics (L1 Heading)
 If a PDF of this topic is generated using the pdfrecursive option with
 pdfheadershift set to auto, then the child topics will appear after this
 header.
