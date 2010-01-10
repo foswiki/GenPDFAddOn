@@ -697,6 +697,7 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 # if shift is set to "auto", shift the headers by the recursive "depth" of the topic.
 # (Depth = 0 for root level topic.)
     my $shift = 0;
+    my $hn = 1;
 
     if ( $prefs{'shift'} =~ /^[+-]?\d+$/ ) {
         $shift = $prefs{'shift'};
@@ -704,16 +705,17 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     else {
         if ( $prefs{'shift'} eq "auto" ) {
             $shift = $depth;
+            $hn = $depth + 1;
         }
     }
+
     $html = _shiftHeaders( $html, $shift );
 
   # Check if any headings are present - if none, can't generate a structured PDF
     $hasHeadings = ( $html =~ /<h[2-6]>/is ) unless ($hasHeadings);
 
-    # Insert an <h1> header if one isn't present
-    # and a target (after the <h1>) for this topic so it gets a bookmark
-    my $hn = $depth + 1;
+    # Insert a header if one isn't present
+    # and a target (after the header) for this topic so it gets a bookmark
     if ( $html !~ /<h$hn/is ) {
         _writeDebug(" Search for <h$hn failed - inseerting <h$hn>$topic</$hn>");
         $html = "<h$hn>$topic</h$hn><a name=\"$topic\"> </a>$html";
@@ -1179,11 +1181,17 @@ sub viewPDF {
             );
         }
         else {
+            my $fmt;
+            if ( $prefs{'shift'} eq "auto" ) {
+               $fmt = '$count(<!-- TOC PROMOTE -->.*);$topic:$parent';
+           } else {
+               $fmt = '0;$topic:$parent';
+           }
             my $list = Foswiki::Func::expandCommonVariables(
                 '%SEARCH{ "^%META:TOPICPARENT"
                     type="regex"
                     multiple="on"
-                    format="$topic:$parent"
+                    format="' . $fmt . '"
                     separator="|"
                     header=""
                     nonoise="on"}%'
@@ -1396,35 +1404,26 @@ sub _depthFirst {
     my @children = grep { $_; } @{ $tree{$parent} };
     for ( sort @children ) {
 
-        _writeDebug("new child of $parent: '$_' Depth $depth ")
+        my ($cnt,$child) = split(/;/,$_);
+        _writeDebug("new child of $parent: '$child' Depth $depth ")
           if $prefs{'debug'};    # DEBUG
-        push @$topics, $_;
+        push @$topics, $child;
 
-        my $reset = Foswiki::Func::expandCommonVariables(
-            '%SEARCH{ "^<!-- NEW CHAPTER -->"
-                type="regex"
-                topic="' . $_ . '"
-                format="$topic"
-                zeroresults="off"
-                header=""
-                nonoise="on"}%'
-        );
-        _writeDebug(" Search returns $reset for topic $_");
         my $tempdepth;
 
-        if ($reset) {
-            $tempdepth = 0;
-            _writeDebug("RESET Depth of $_ to 0");
+        if ($cnt) {
+            $tempdepth = $depth-1;
+            _writeDebug("RESET Depth of $child to 0");
         }
         else {
             $tempdepth = $depth;
-            _writeDebug("Depth of $_ left at $depth");
+            _writeDebug("Depth of $child left at $depth");
         }
         push @$depths, $tempdepth;
-        if ( defined $tree{$_} ) {
+        if ( defined $tree{$child} ) {
 
             # this child is also a parent so bring them in too
-            _depthFirst( $_, $topics, $depths, $tempdepth + 1 );
+            _depthFirst( $child, $topics, $depths, $tempdepth + 1 );
         }
     }
 }

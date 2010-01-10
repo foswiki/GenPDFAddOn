@@ -1,11 +1,11 @@
 %META:TOPICINFO{author="ProjectContributor" date="1118671025" format="1.0" version="$Rev$"}%
-%META:TOPICPARENT{name="GenPDFAddOn"}%
+%META:TOPICPARENT{name="GenPDFAddOnDemo"}%
 This page serves as the title page for documents created with %SYSTEMWEB%.GenPDFAddOn. The content between the horizontal rules will be printed on the title page of the PDF document.
 
-	* The ==GENPDFADDON_== parameters can be overwritten in the final document either by setting preferences in %WEB%.WebPreferences or in the base topic (Ie. the one you are generating a PDF from):
-		* Set GENPDFADDON_BANNER = Our Slogan %ORANGE%Rocks!!!%ENDCOLOR%
-		* Set GENPDFADDON_TITLE = %TOPIC%
-		* Set GENPDFADDON_SUBTITLE = %REVINFO%
+   * The ==GENPDFADDON_== parameters can be overwritten in the final document either by setting preferences in %WEB%.WebPreferences or in the base topic (Ie. the one you are generating a PDF from):
+      * Set GENPDFADDON_BANNER = Our Slogan %ORANGE%Rocks!!!%ENDCOLOR%
+      * Set GENPDFADDON_TITLE = %TOPIC%
+      * Set GENPDFADDON_SUBTITLE = %REVINFO%
 
 There is currently no =%<nop>ATTACHURL{topic="%<nop>WEB%.TopicName"}%= so you must expand the full path to attachments like this:
 
@@ -68,8 +68,8 @@ Generated: %DISPLAYTIME%
 
 -- Main.WadeTurland - 13 Jun 2005
 
-%META:FORM{name="DocumentClassificationForm"}%
-%META:FIELD{name="DocumentClassification" title="DocumentClassification" value="CompanyConfidential"}%
-%META:FIELD{name="DocumentType" title="DocumentType" value="HowTo"}%
-%META:FIELD{name="TopicHeadline" title="TopicHeadline" value="Oh yeah - We Rock Too!!! Just look at this cool document :-)"}%
-%META:FIELD{name="KeyWords" title="KeyWords" value="PDF, acrobat, generator, copyright, proprietary, confidential, legal rights"}%
+%META:FORM{name="GenPDFAddOnDemoForm"}%
+%META:FIELD{name="DocumentClassification" attributes="" title="DocumentClassification" value="CompanyConfidential"}%
+%META:FIELD{name="DocumentType" attributes="" title="DocumentType" value="HowTo"}%
+%META:FIELD{name="TopicHeadline" attributes="" title="TopicHeadline" value="Oh yeah - We Rock Too!!! Just look at this cool document :-)"}%
+%META:FIELD{name="KeyWords" attributes="" title="KeyWords" value="PDF, acrobat, generator, copyright, proprietary, confidential, legal rights"}%
