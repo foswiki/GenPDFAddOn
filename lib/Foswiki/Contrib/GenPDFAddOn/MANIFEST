@@ -1,10 +1,11 @@
 bin/genpdf 0755
 data/System/GenPDFAddOn.txt 644	Add-on topic
-data/System/GenPDFAddOnDemo.txt 0644 Demonstration topic
-data/System/GenPDFAddOnDemoChild.txt 0644  Demo child for recursive rendering
-data/System/GenPDFAddOnDemoChild2.txt 0644 Demo child for recursive rendering
-data/System/GenPDFExampleHeaderFooterTopic.txt 0644 
-data/System/GenPDFExampleTitleTopic.txt 0644
+data/Sandbox/GenPDFAddOnDemo.txt 0644 Demonstration topic
+data/Sandbox/GenPDFAddOnDemoChild.txt 0644  Demo child for recursive rendering
+data/Sandbox/GenPDFAddOnDemoChild2.txt 0644 Demo child for recursive rendering
+data/Sandbox/GenPDFAddOnDemoForm.txt 0644 Document classification form
+data/Sandbox/GenPDFExampleHeaderFooterTopic.txt 0644
+data/Sandbox/GenPDFExampleTitleTopic.txt 0644
 pub/System/GenPDFAddOn/pdf-32.gif 0644
 pub/System/GenPDFAddOn/pdf-32.png 0644
 pub/System/GenPDFAddOn/pdf-64.gif 0644

@@ -1,5 +1,5 @@
 %META:TOPICINFO{author="ProjectContributor" date="1234067891" format="1.1" version="1.5"}%
-%META:TOPICPARENT{name="GenPDFAddOn"}%
+%META:TOPICPARENT{name="System.GenPDFAddOn"}%
 %TOC%
 =&lt;!-- PDFSTART --&gt;  inserted here to avoid a blank page for the Foswiki TOC=
 <!-- PDFSTART --> 
@@ -10,9 +10,7 @@ This is a sample document to show what can be achieved with the GenPDFAddOn Plug
    * [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%][Generate a PDF of this page]]
    * [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%?pdfrecursive=1][Generate a PDF of this page and child topics]].  _Note that each L1 heading and each Child topic is a separate chapter in the PDF._
    * [[%SCRIPTURL{genpdf}%/%WEB%/%TOPIC%?pdfrecursive=1;pdfheadershift=auto][Generate a PDF with auto header shifting]] _Only L1 headings become chapters.  Child topics are properly indented._
-
-<!-- NEW CHAPTER -->
-   * [[%SCRIPTURL{genpdf}%/%WEB%/GenPDFAddOn?pdfrecursive=1;pdfheadershift=auto][Generate a PDF of the parent GenPDFAddOn Topic]] In this example, the GenPDFAddOnDemo topic will begin a new chapter instead of being automatically indented below the GenPDFAddOn topic.  This topic contains the =&lt;!-- NEW CHAPTER --&gt;= comment which resets heading shifting back to the parent level.
+      * Note that the GenPDFAddOnDemoForm topic will start a new chapter - it contains the =&lt;!-- NEW CHAPTER --&gt;= comment.
 
 Here are some headings - note that &lt;h1&gt; level 1 headers always appear on
 a new page and is treated as a new chapter in the PDF.  So the Level 1 heading
@@ -127,8 +125,8 @@ Generated: %DISPLAYTIME%
       * Set GENPDFADDON_BANNER = Our Slogan %ORANGE%Rocks!!!%ENDCOLOR%
       * Set GENPDFADDON_TITLE = %BASETOPIC%
       * Set GENPDFADDON_SUBTITLE = %REVINFO{web="%WEB%" topic="%BASETOPIC%"}%
-      * Set GENPDFADDON_TITLETOPIC = %SYSTEMWEB%.GenPDFExampleTitleTopic
-      * Set GENPDFADDON_HEADERTOPIC = %SYSTEMWEB%.GenPDFExampleHeaderFooterTopic
+      * Set GENPDFADDON_TITLETOPIC = GenPDFExampleTitleTopic
+      * Set GENPDFADDON_HEADERTOPIC = GenPDFExampleHeaderFooterTopic
       * Set GENPDFADDON_HEADFOOTFONT = helvetica-bold
       * Set GENPDFADDON_LOGOIMAGE = %ICON{pdf}%
       * Set GENPDFADDON_FORMAT = pdf14

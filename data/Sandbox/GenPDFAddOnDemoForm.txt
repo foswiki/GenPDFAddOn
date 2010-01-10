@@ -1,6 +1,7 @@
 %META:TOPICINFO{author="ProjectContributor" date="1234067891" format="1.1" version="1.5"}%
 %META:TOPICPARENT{name="GenPDFAddOnDemo"}%
 ---+ Form Definition for PDF Classification
+<!-- NEW CHAPTER -->  =&lt;!-- NEW CHAPTER --&gt;=
 
 | *Name:* | *Type:* | *Size:* | *Values:* | *Tooltip message:* |
 | | label | | Describe the Security sensitivity of this document For example: <ul> <li> *CompanyConfidential* - Internal use only</li> <li> *GeneralAvailability* - Acceptable for general distribution</li> <li> *CustomerProprietary* - Confidential document of an external customer</li> </ul> | |
