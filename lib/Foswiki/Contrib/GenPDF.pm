@@ -62,17 +62,15 @@ use Foswiki::Plugins ();    # For the API version
 use File::Temp qw( tempfile );
 use Error qw( :try );
 
-use vars qw( $VERSION $RELEASE );
-
 # This should always be $Rev$ so that Foswiki can determine the checked-in
 # status of the plugin. It is used by the build automation tools, so
 # you should leave it alone.
-$VERSION = '$Rev$';
+our $VERSION = '$Rev$';
 
 # This is a free-form string you can use to "name" your own plugin version.
 # It is *not* used by the build automation tools, but is reported as part
 # of the version number in PLUGINDESCRIPTIONS.
-$RELEASE = '1.0.8';
+our $RELEASE = '1.1-rc2';
 
 $| = 1;    # Autoflush buffers
 
@@ -1163,7 +1161,8 @@ sub viewPDF {
     # Get header/footer data
     my $hfData = _getHeaderFooterData($webName);
 
-    my $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} || 'htmldoc';
+    my $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd}
+      || 'htmldoc';
 
     if ( defined $Foswiki::cfg{TempfileDir} ) {
         $tempdir = $Foswiki::cfg{TempfileDir};
