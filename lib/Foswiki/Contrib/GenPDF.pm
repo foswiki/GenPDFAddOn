@@ -697,7 +697,7 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
 # if shift is set to "auto", shift the headers by the recursive "depth" of the topic.
 # (Depth = 0 for root level topic.)
     my $shift = 0;
-    my $hn = 1;
+    my $hn    = 1;
 
     if ( $prefs{'shift'} =~ /^[+-]?\d+$/ ) {
         $shift = $prefs{'shift'};
@@ -705,7 +705,7 @@ s/(<p(.*) style="page-break-before:always")/\n<!-- PAGE BREAK -->\n<p$1/gis;
     else {
         if ( $prefs{'shift'} eq "auto" ) {
             $shift = $depth;
-            $hn = $depth + 1;
+            $hn    = $depth + 1;
         }
     }
 
@@ -1163,9 +1163,7 @@ sub viewPDF {
     # Get header/footer data
     my $hfData = _getHeaderFooterData($webName);
 
-    my $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd};
-
-    die "Path to htmldoc command not defined" unless $htmldocCmd;
+    my $htmldocCmd = $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} || 'htmldoc';
 
     if ( defined $Foswiki::cfg{TempfileDir} ) {
         $tempdir = $Foswiki::cfg{TempfileDir};
@@ -1183,10 +1181,11 @@ sub viewPDF {
         else {
             my $fmt;
             if ( $prefs{'shift'} eq "auto" ) {
-               $fmt = '$count(<!-- TOC PROMOTE -->.*);$topic:$parent';
-           } else {
-               $fmt = '0;$topic:$parent';
-           }
+                $fmt = '$count(<!-- TOC PROMOTE -->.*);$topic:$parent';
+            }
+            else {
+                $fmt = '0;$topic:$parent';
+            }
             my $list = Foswiki::Func::expandCommonVariables(
                 '%SEARCH{ "^%META:TOPICPARENT"
                     type="regex"
@@ -1404,7 +1403,7 @@ sub _depthFirst {
     my @children = grep { $_; } @{ $tree{$parent} };
     for ( sort @children ) {
 
-        my ($cnt,$child) = split(/;/,$_);
+        my ( $cnt, $child ) = split( /;/, $_ );
         _writeDebug("new child of $parent: '$child' Depth $depth ")
           if $prefs{'debug'};    # DEBUG
         push @$topics, $child;
@@ -1412,7 +1411,7 @@ sub _depthFirst {
         my $tempdepth;
 
         if ($cnt) {
-            $tempdepth = $depth-1;
+            $tempdepth = $depth - 1;
             _writeDebug("RESET Depth of $child to 0");
         }
         else {

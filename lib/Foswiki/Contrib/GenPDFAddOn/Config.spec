@@ -1,8 +1,8 @@
 # ---+ Extensions
 # ---++ GenPDFAddOn
-# **PATH M**
+# **PATH**
 # htmldoc executable including complete path.
-$Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} = '/usr/bin/htmldoc';
+$Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} = '';
 # **PERL H**
 # This setting is required to enable executing genpdf script from the bin directory
 $Foswiki::cfg{SwitchBoard}{genpdf} = {
