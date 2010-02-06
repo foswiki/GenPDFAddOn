@@ -1372,6 +1372,7 @@ sub viewPDF {
     };
 
     open $ofh, $outputFile;
+    binmode $ofh;
     while (<$ofh>) {
         print;
     }
