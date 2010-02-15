@@ -1,23 +1,27 @@
 #!/usr/bin/perl -w
-#
-# Build file
-#
-package GenPDFAddOnBuild;
-
-BEGIN {
-    foreach my $pc ( split( /:/, $ENV{FOSWIKI_LIBS} ) ) {
-        unshift @INC, $pc;
-    }
-}
-
+BEGIN { unshift @INC, split( /:/, $ENV{FOSWIKI_LIBS} ); }
 use Foswiki::Contrib::Build;
 
-@GenPDFAddOnBuild::ISA = ("Foswiki::Contrib::Build");
+# Create the build object
+$build = new Foswiki::Contrib::Build('GenPDFAddOn');
 
-sub new {
-    my $class = shift;
-    return bless( $class->SUPER::new("GenPDFAddOn"), $class );
-}
+# (Optional) Set the details of the repository for uploads.
+# This can be any web on any accessible Foswiki installation.
+# These defaults will be used when expanding tokens in .txt
+# files, but be warned, they can be overridden at upload time!
 
-$build = new GenPDFAddOnBuild();
+# name of web to upload to
+$build->{UPLOADTARGETWEB} = 'Sandbox/Beta';
+
+# Full URL of pub directory
+$build->{UPLOADTARGETPUB} = 'http://foswiki.org/pub';
+
+# Full URL of bin directory
+$build->{UPLOADTARGETSCRIPT} = 'http://foswiki.org/bin';
+
+# Script extension
+$build->{UPLOADTARGETSUFFIX} = '';
+
+# Build the target on the command line, or the default target
 $build->build( $build->{target} );
+
