@@ -70,7 +70,7 @@ our $RELEASE = '1.1-rc2';
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
 our $SHORTDESCRIPTION =
-  '<nop>GenPDFPlugin helper plugin for GenPDFAddOn renders the %<nop>GENPDF% tag';
+'<nop>GenPDFPlugin helper plugin for GenPDFAddOn renders the %<nop>GENPDF% tag';
 
 # You must set $NO_PREFS_IN_TOPIC to 0 if you want your plugin to use
 # preferences set in the plugin topic. This is required for compatibility

@@ -6,9 +6,11 @@ $Foswiki::cfg{Extensions}{GenPDFAddOn}{htmldocCmd} = '';
 # **PERL H**
 # This setting is required to enable executing genpdf script from the bin directory
 $Foswiki::cfg{SwitchBoard}{genpdf} = {
-    package  => 'Foswiki::Contrib::GenPDF',
+    package  => 'Foswiki::Contrib::GenPDFAddOn',
     function => 'viewPDF',
-    context  => { view => 1 },
+    context  => { view => 1,
+                  pdf => 1
+                },
     };
 
 1;

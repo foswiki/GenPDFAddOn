@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="BaseUserMapping_333" date="1265477638" format="1.1" version="1.2"}%
+%META:TOPICINFO{author="ProjectContributor" date="1265477638" format="1.1" version="1.2"}%
 %GENPDFLINK% 
 <!-- PDFSTART -->
 ---+!! Generate PDF Add-On
@@ -6,7 +6,7 @@
 %TOC% 
 <!-- PDFSTART --> 
 <!--
-   * Set SHORTDESCRIPTION = Generate a PDF from one or more Foswiki topics
+   * Set SHORTDESCRIPTION = Generate a PDF from a Foswiki topic or topic hierarchy
 --> 
 %SHORTDESCRIPTION%
 

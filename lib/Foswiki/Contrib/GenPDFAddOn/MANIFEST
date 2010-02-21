@@ -11,7 +11,8 @@ pub/System/GenPDFAddOn/pdf-32.png 0644
 pub/System/GenPDFAddOn/pdf-64.gif 0644
 pub/System/GenPDFAddOn/pdf-64.png 0644
 htmldoc_force_header.patch 0644
-lib/Foswiki/Contrib/GenPDF.pm 0644
+lib/Foswiki/Contrib/GenPDF.pm 0644 Shim module to avoid breaking old installations
+lib/Foswiki/Contrib/GenPDFAddOn.pm 0644 Renamed GenPDF.pm to packaging standards
 lib/Foswiki/Contrib/GenPDFAddOn/Config.spec 0755
 lib/Foswiki/Plugins/GenPDFPlugin.pm 0644
 templates/view.genpdf.tmpl 0644
