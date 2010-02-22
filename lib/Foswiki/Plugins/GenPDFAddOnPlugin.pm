@@ -161,6 +161,10 @@ sub _GENPDF {
  #    # For example, %EXAMPLETAG{'hamburger' sideorder="onions"}%
  #    # $params->{_DEFAULT} will be 'hamburger'
  #    # $params->{sideorder} will be 'onions'
+ 
+
+    my $context = Foswiki::Func::getContext();
+    return unless $context->{'view'};    # Don't render the tag in preview or other operations.
 
     #   If a topic name is provided, use it instead of the current topic
     #
