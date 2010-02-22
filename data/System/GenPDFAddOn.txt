@@ -35,19 +35,7 @@ There are multiple ways to incorporate PDF rendering of your Foswiki topics or t
 
 ---+++ !GenPDFPlugin helper plugin
 
-This version of the !AddOn also ships with a simple !GenPDFPlugin helper plugin.  It will render the %<nop>GENPDF% macro as a clickable link to the pdf version of the topic.
-
-*Write* %<nop>GENPDF% 
-   * *Simulated:* %SCRIPTURL{"genpdf"}%/System/GenPDFAddOn 
-   * *If Installed:* %GENPDF% 
-
-*Write* %<nop>GENPDF{"System.WebHome"}%
-   * *Simulated:* %SCRIPTURL{"genpdf"}%/System/WebHome
-   * *If Installed:* %GENPDF{"System.WebHome"}% 
-
-*Write* %<nop>GENPDF{"System.WebHome" link="WebHome"}% 
-   * *Simulated*: [[%SCRIPTURL{"genpdf"}%/System/WebHome][WebHome]] 
-   * *If Installed*: %GENPDF{"System.WebHome" link="WebHome"}% 
+%INCLUDE{"GenPDFAddOnPlugin"}%
 
 ---++ Configuring the Script
 

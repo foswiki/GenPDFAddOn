@@ -2,7 +2,7 @@
 
 =begin TML
 
----+ package GenPDFPlugin
+---+ package GenPDFAddOnPlugin
 
 Foswiki plugins 'listen' to events happening in the core by registering an
 interest in those events. They do this by declaring 'plugin handlers'. These
@@ -47,7 +47,7 @@ the text had been included from another topic.
 =cut
 
 # change the package name!!!
-package Foswiki::Plugins::GenPDFPlugin;
+package Foswiki::Plugins::GenPDFAddOnPlugin;
 
 # Always use strict to enforce variable scoping
 use strict;
@@ -70,7 +70,7 @@ our $RELEASE = '1.1-rc2';
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
 our $SHORTDESCRIPTION =
-'<nop>GenPDFPlugin helper plugin for GenPDFAddOn renders the %<nop>GENPDF% tag';
+'<nop>GenPDFAddOnPlugin helper plugin for GenPDFAddOn renders the %<nop>GENPDF% tag';
 
 # You must set $NO_PREFS_IN_TOPIC to 0 if you want your plugin to use
 # preferences set in the plugin topic. This is required for compatibility
@@ -123,14 +123,14 @@ sub initPlugin {
 
     # Set your per-installation plugin configuration in LocalSite.cfg,
     # like this:
-    # $Foswiki::cfg{Plugins}{GenPDFPlugin}{ExampleSetting} = 1;
+    # $Foswiki::cfg{Plugins}{GenPDFAddOnPlugin}{ExampleSetting} = 1;
     # Optional: See %SYSTEMWEB%.DevelopingPlugins#ConfigSpec for information
     # on integrating your plugin configuration with =configure=.
 
-    # Always provide a default in case the setting is not defined in
-    # LocalSite.cfg. See %SYSTEMWEB%.Plugins for help in adding your plugin
-    # configuration to the =configure= interface.
-    # my $setting = $Foswiki::cfg{Plugins}{GenPDFPlugin}{ExampleSetting} || 0;
+ # Always provide a default in case the setting is not defined in
+ # LocalSite.cfg. See %SYSTEMWEB%.Plugins for help in adding your plugin
+ # configuration to the =configure= interface.
+ # my $setting = $Foswiki::cfg{Plugins}{GenPDFAddOnPlugin}{ExampleSetting} || 0;
 
     # Register the _EXAMPLETAG function to handle %EXAMPLETAG{...}%
     # This will be called whenever %EXAMPLETAG% or %EXAMPLETAG{...}% is
@@ -191,11 +191,11 @@ sub _GENPDF {
 
 1;
 __END__
-This copyright information applies to the GenPDFPlugin:
+This copyright information applies to the GenPDFAddOnPlugin:
 
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# GenPDFPlugin is Copyright (C) 2008 Foswiki Contributors. Foswiki Contributors
+# GenPDFAddOnPlugin is Copyright (C) 2008 Foswiki Contributors. Foswiki Contributors
 # are listed in the AUTHORS file in the root of this distribution.
 # NOTE: Please extend that file, not this notice.
 # Additional copyrights apply to some or all of the code as follows:
@@ -204,7 +204,7 @@ This copyright information applies to the GenPDFPlugin:
 # and TWiki Contributors. All Rights Reserved. Foswiki Contributors
 # are listed in the AUTHORS file in the root of this distribution.
 #
-# This license applies to GenPDFPlugin *and also to any derivatives*
+# This license applies to GenPDFAddOnPlugin *and also to any derivatives*
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

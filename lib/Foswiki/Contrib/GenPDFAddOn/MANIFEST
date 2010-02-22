@@ -1,5 +1,7 @@
 bin/genpdf 0755
 data/System/GenPDFAddOn.txt 644	Add-on topic
+data/System/GenPDFAddOnPlugin.txt 644 Helper plugin topic
+data/System/VarGENPDF.txt 644 Defines GENPDF macro
 data/Sandbox/GenPDFAddOnDemo.txt 0644 Demonstration topic
 data/Sandbox/GenPDFAddOnDemoChild.txt 0644  Demo child for recursive rendering
 data/Sandbox/GenPDFAddOnDemoChild2.txt 0644 Demo child for recursive rendering
@@ -14,5 +16,5 @@ htmldoc_force_header.patch 0644
 lib/Foswiki/Contrib/GenPDF.pm 0644 Shim module to avoid breaking old installations
 lib/Foswiki/Contrib/GenPDFAddOn.pm 0644 Renamed GenPDF.pm to packaging standards
 lib/Foswiki/Contrib/GenPDFAddOn/Config.spec 0755
-lib/Foswiki/Plugins/GenPDFPlugin.pm 0644
+lib/Foswiki/Plugins/GenPDFAddOnPlugin.pm 0644
 templates/view.genpdf.tmpl 0644
