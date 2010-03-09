@@ -9,7 +9,7 @@ $Foswiki::cfg{SwitchBoard}{genpdf} = {
     package  => 'Foswiki::Contrib::GenPDFAddOn',
     function => 'viewPDF',
     context  => { view => 1,
-                  readonly => 1
+                  static => 1
                 },
     };
 
