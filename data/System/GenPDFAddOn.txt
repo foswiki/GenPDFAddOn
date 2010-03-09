@@ -73,6 +73,9 @@ _The HTMLDOC software and related variables, see the HTMLDOC documentation at ht
 | pdftoctitle | _TOCTITLE | | Contents | See http://www.htmldoc.org/ Default is to use the htmldoc provided string "Table of Contents". Note that a current limitation is that strings containing embedded spaces are not passed correctly. |
 | pdftocheader | _TOCHEADER | ... | l.. | See http://www.htmldoc.org/ |
 | pdftocfooter | _TOCFOOTER | ..i | .i. | See http://www.htmldoc.org/ |
+| pdfbodyfont | _BODYFONT | | | Specify font for body of document (Arial, =Courier=, =Helvetica=, =Monospace=, =Sans=, =Serif=, or =Times= |
+| pdfheadingfont | _HEADINGFONT | | | Specify font for headings of document (Arial, =Courier=, =Helvetica=, =Monospace=, =Sans=, =Serif=, or =Times= |
+| pdftextfont | _TEXTFONT | | | Specify font for all text in document (Arial, =Courier=, =Helvetica=, =Monospace=, =Sans=, =Serif=, or =Times= |
 | pdfheader | _HEADER | | .1. | Specify content of header, see http://www.htmldoc.org |
 | pdffooter | _FOOTER | | .1. | Specify content of footer, see http://www.htmldoc.org |
 | pdfheadfootfont | _HEADFOOTFONT | | Helvetica-Bold | Font specification for headers and footers. |
@@ -275,7 +278,7 @@ $Foswiki::cfg{SwitchBoard}{genpdf} = {
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | |
-|  21 Feb 2010 | *Release 1.1* Foswikitask:Item8586 - resolve packaging issue, Foswikitask:8575 - Add a "pdf" context to allow other plugins to recognize pdf output |
+|  9 Mar 2010 | *Release 1.1* Foswikitask:Item8586 - resolve packaging issue, Foswikitask:8575 - Add a "pdf" context to allow other plugins to recognize pdf output, Foswikitask:Item8691: Add support for heading and body fonts |
 |  6 Feb 2010 | Foswikitask:Item559 - Correct handing of embedded images, Foswikitask:Item1599 - Improve compatibility with EditTable, Foswikitask:Item2084 - Add support of topic revisions, Foswikitask:Item2435 - Correct DEPENDENCIES file, Foswikitask:Item2492 - support configurable image compression, Foswikitask:Item2592 - Correct issues with Examples, and handling of missing images, Foswikitask:Item2604 - Improve handling of TOC for recursive rendering, Foswikitask:Item8081 - Support passing %<nop>MACROS% in GENPDF settings, Foswikitask:Item8090 - Remove pdftoclevels from view.genpdf.tmpl, Foswikitask:Item8361 - Add support for TOC Title, and improve handling of HTML arrows.  Foswikitask:Item1174 - Initial release of !GenPDFPlugin helper |
 |  28 Feb 2009 | Added missing Config.spec file Item1161: GenPDFAddOn result in "Not Found" page |
 |  Feb 2009 | Conversion to Foswiki. Better &lt;a and &lt;img tag handling. Rewrote attachment handling to use Func:: API Rewrote recursive mode to use %SEARCH  |

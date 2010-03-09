@@ -70,7 +70,7 @@ our $VERSION = '$Rev$';
 # This is a free-form string you can use to "name" your own plugin version.
 # It is *not* used by the build automation tools, but is reported as part
 # of the version number in PLUGINDESCRIPTIONS.
-our $RELEASE = '1.1-RC3';
+our $RELEASE = '1.1-RC4';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -829,6 +829,9 @@ sub _getPrefs {
     use constant HEADFOOTFONT => "";
     use constant HEADFOOTSIZE => undef;
     use constant BODYIMAGE    => "";
+    use constant BODYFONT     => "";
+    use constant TEXTFONT     => "";
+    use constant HEADINGFONT  => "";
     use constant LOGOIMAGE    => "";
     use constant NUMBEREDTOC  => undef;
     use constant DUPLEX       => undef;
@@ -1042,6 +1045,30 @@ sub _getPrefs {
          $query->param('pdfbodyimage')
       || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYIMAGE")
       || BODYIMAGE;
+
+    $prefs{'bodyfont'} =
+         $query->param('pdfbodyfont')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_BODYFONT")
+      || BODYFONT;
+    $prefs{'bodyfont'} = BODYFONT
+      unless ( $prefs{'bodyfont'} =~
+        /^Arial|Courier|Helvetica|Monospace|Sans|Serif|Times$/i );
+
+    $prefs{'headingfont'} =
+         $query->param('pdfheadingfont')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_HEADINGFONT")
+      || HEADINGFONT;
+    $prefs{'headingfont'} = HEADINGFONT
+      unless ( $prefs{'headingfont'} =~
+        /^Arial|Courier|Helvetica|Monospace|Sans|Serif|Times$/i );
+
+    $prefs{'textfont'} =
+         $query->param('pdftextfont')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_TEXTFONT")
+      || TEXTFONT;
+    $prefs{'textfont'} = TEXTFONT
+      unless ( $prefs{'textfont'} =~
+        /^Arial|Courier|Helvetica|Monospace|Sans|Serif|Times$/i );
 
     $prefs{'logoimage'} =
          $query->param('pdflogoimage')
@@ -1289,6 +1316,12 @@ sub viewPDF {
     push @htmldocArgs, "--duplex" if $prefs{'duplex'};
     push @htmldocArgs, "--bodyimage", "$prefs{'bodyimage'}"
       if $prefs{'bodyimage'};
+    push @htmldocArgs, "--bodyfont", "$prefs{'bodyfont'}"
+      if $prefs{'bodyfont'};
+    push @htmldocArgs, "--headingfont", "$prefs{'headingfont'}"
+      if $prefs{'headingfont'};
+    push @htmldocArgs, "--textfont", "$prefs{'textfont'}"
+      if $prefs{'textfont'};
     push @htmldocArgs, "--logoimage", "$prefs{'logoimage'}"
       if $prefs{'logoimage'};
     push @htmldocArgs, "--headfootfont", "$prefs{'headfootfont'}"
