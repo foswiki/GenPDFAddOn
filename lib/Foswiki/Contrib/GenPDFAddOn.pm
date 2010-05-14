@@ -1151,9 +1151,10 @@ sub viewPDF {
     $Foswiki::Plugins::SESSION = $session;
 
     $query = $session->{cgiQuery};
-    my $webName = $session->{webName};
-    my $topic   = $session->{topicName};
-    my $rev     = $query->param('rev');
+    my $webName  = $session->{webName};
+    my $topic    = $session->{topicName};
+    my $response = $session->{response};
+    my $rev      = $query->param('rev');
 
     open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
       ;    # redirect errors to a log file
@@ -1419,6 +1420,12 @@ sub viewPDF {
     unlink $outputFile, $titleFile unless $prefs{'debug'};
     unlink @contentFiles unless $prefs{'debug'};
     unlink @tempfiles    unless $prefs{'debug'};
+
+    # SMELL:  Foswiki 1.0.x adds the headers,  1.1 does not.   However 
+    # deleting them doesn't appear to cause problems in 1.1.
+
+    my $headers = $response->headers() ;
+    $response->deleteHeader('X-Foswikiuri', 'X-Foswikiaction');
 }
 
 ### sub _writeDebug
