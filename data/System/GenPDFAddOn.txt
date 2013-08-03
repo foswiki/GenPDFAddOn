@@ -274,11 +274,12 @@ $Foswiki::cfg{SwitchBoard}{genpdf} = {
 ---++ Add-On Info
 
 |  Add-on Author: | Foswiki:Main/BrianSpinar, Foswiki:Main/WadeTurland, Foswiki:Main/GeorgeClark |
-|  Copyright: | © 2009, Foswiki Contributors |
+|  Copyright: | \A9 2009-2013, Foswiki Contributors |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | |
+|  4 aUG 2013 | *Release 1.3* FoswikiTask:Item9984 - fix FastCGI operation. |
 |  14 May 2010 | *Release 1.2* Foswikitask:Item9008 - Remove the X-Foswiki headers from the response. |
 |  9 Mar 2010 | *Release 1.1* Foswikitask:Item8586 - resolve packaging issue, Foswikitask:8575 - Add a "static" context to allow other plugins to recognize pdf output, Foswikitask:Item8691: Add support for heading and body fonts |
 |  6 Feb 2010 | Foswikitask:Item559 - Correct handing of embedded images, Foswikitask:Item1599 - Improve compatibility with EditTable, Foswikitask:Item2084 - Add support of topic revisions, Foswikitask:Item2435 - Correct DEPENDENCIES file, Foswikitask:Item2492 - support configurable image compression, Foswikitask:Item2592 - Correct issues with Examples, and handling of missing images, Foswikitask:Item2604 - Improve handling of TOC for recursive rendering, Foswikitask:Item8081 - Support passing %<nop>MACROS% in GENPDF settings, Foswikitask:Item8090 - Remove pdftoclevels from view.genpdf.tmpl, Foswikitask:Item8361 - Add support for TOC Title, and improve handling of HTML arrows.  Foswikitask:Item1174 - Initial release of !GenPDFPlugin helper |

@@ -70,7 +70,7 @@ our $VERSION = '$Rev$';
 # This is a free-form string you can use to "name" your own plugin version.
 # It is *not* used by the build automation tools, but is reported as part
 # of the version number in PLUGINDESCRIPTIONS.
-our $RELEASE = '1.2';
+our $RELEASE = '1.3';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -1156,9 +1156,6 @@ sub viewPDF {
     my $response = $session->{response};
     my $rev      = $query->param('rev');
 
-    open( STDERR, ">>$Foswiki::cfg{DataDir}/error.log" )
-      ;    # redirect errors to a log file
-
     %tree  = ();
     %prefs = ();
 
@@ -1207,8 +1204,8 @@ sub viewPDF {
     if ( $prefs{'recursive'} ) {
         if ($rev) {
             &_writeDebug(
-"Recursive processing disabled - explicit topic revision specified."
-            );
+		 "Recursive processing disabled - explicit topic revision specified."
+		);
         }
         else {
             my $fmt;
@@ -1256,18 +1253,29 @@ sub viewPDF {
         # The data returned also incluides the header. Remove it.
         $htmlData =~ s|.*(<!DOCTYPE)|$1|s;
 
-        # Save this to a temp file for htmldoc processing
-        my ( $cfh, $contentFile ) = tempfile(
-            'GenPDFAddOnXXXXXXXXXX',
-            DIR => $tempdir,
+        try {
 
-            #UNLINK => 0, # DEBUG
-            SUFFIX => '.html'
-        );
-        open $cfh, ">$contentFile";
-        print $cfh $hfData . $htmlData;
-        close $cfh;
-        push @contentFiles, $contentFile;
+            # Save this to a temp file for htmldoc processing
+            my ( $cfh, $contentFile ) = tempfile(
+                'GenPDFAddOnXXXXXXXXXX',
+                DIR => $tempdir,
+                #UNLINK => 0, # DEBUG
+                SUFFIX => '.html'
+            ) or die( "error creating temp file\n" );
+                                           
+            open( $cfh, ">$contentFile" ) or die( "error opening temp file: $!\n" );
+            print $cfh ( $hfData . $htmlData ) or die( "error printing to temp file: $!\n" );
+            close $cfh or die( "error closing temp file: $!\n" );
+            push @contentFiles, $contentFile;
+
+      } otherwise {
+
+          throw Foswiki::OopsException( 'oopsattention',
+                                        def => 'generic',
+                                        params => [ "System.GenPDFAddOn:",
+                                                    "error generating HTML for $topic", shift ] );
+      }
+
     }
 
     # Create a file holding the title data
@@ -1280,7 +1288,12 @@ sub viewPDF {
 
         #UNLINK => 0, # DEBUG
         SUFFIX => '.pdf'
-    );
+    ) or
+          throw Foswiki::OopsException( 'oopsattention',
+                                        def => 'generic',
+                                        params => [ "System.GenPDFAddOn:",
+                                                    "unable to create output file" ]
+                                      );
 
     # Override structured PDF if no headings present
     if ( $prefs{'struct'} eq 'book' && !$hasHeadings ) {
@@ -1352,7 +1365,7 @@ sub viewPDF {
 
     # Disable CGI feature of newer versions of htmldoc
     # (thanks to Brent Roberts for this fix)
-    $ENV{HTMLDOC_NOCGI} = "yes";
+    local $ENV{HTMLDOC_NOCGI} = "yes";
 
     my $htmldocArgs = join( ' ', @htmldocArgs );
     $htmldocArgs =
@@ -1363,51 +1376,49 @@ sub viewPDF {
 
     _writeDebug("Calling htmldoc with args: $htmldocArgs");
 
-    my ( $Output, $exit ) =
+    my ( $stdout, $exit, $stderr ) =
       Foswiki::Sandbox->sysCommand( $htmldocCmd . ' ' . $htmldocArgs );
     _writeDebug("htmldoc exited with $exit");
-    if ( !-e $outputFile ) {
-        die "error running htmldoc ($htmldocCmd): $Output\n";
-    }
-    if ( !-s $outputFile ) {
-        die "htmldoc produced zero length output ($htmldocCmd): $Output\n"
-          . join( ' ', @htmldocArgs ) . "\n";
+
+    my $error = ! -e $outputFile ? 'error running htmldoc'
+              : ! -s $outputFile ? 'htmldoc produced zero length output'
+              :                    undef;
+        
+    if ( defined $error ) {
+        throw Foswiki::OopsException( 'oopsattention', def => 'generic',
+                                      params => [ 
+                                                  "System.GenPDFAddOn: error producing PDF: $error",
+                                                  "command: " . $htmldocCmd . ' ' . $htmldocArgs,
+                                                  "STDOUT: $stdout",
+                                                  ( defined $stderr ? "STDERR: $stderr" : () )
+                                                ] );
     }
 
     #  output the HTML header and the output of HTMLDOC
     my $cd = "filename=${webName}_$topic.%s";
     $cd = "attachment; $cd" if ( $prefs{'destination'} ne 'view' );
 
-    try
-    { #?? Doesn't this try belong around the run of htmldoc?  CGI::header won't fail.
-        if ( $prefs{'format'} =~ /^pdf/ ) {
-            print CGI::header(
-                -TYPE                => 'application/pdf',
-                -Content_Disposition => sprintf $cd,
-                'pdf'
-            );
-        }
-        elsif ( $prefs{'format'} =~ /^ps/ ) {
-            print CGI::header(
-                -TYPE                => 'application/postscript',
-                -Content_Disposition => sprintf $cd,
-                'ps'
-            );
-        }
-        else {
-            print CGI::header(
-                -TYPE                => 'text/html',
-                -Content_Disposition => sprintf $cd,
-                'html'
-            );
-        }
+    if ( $prefs{'format'} =~ /^pdf/ ) {
+        print CGI::header(
+            -TYPE                => 'application/pdf',
+            -Content_Disposition => sprintf $cd,
+            'pdf'
+        );
     }
-    catch Error::Simple with {
-        print STDERR "GenPDF caught Error::Simple";
-        my $e = shift;
-        use Data::Dumper;
-        die Dumper($e);
-    };
+    elsif ( $prefs{'format'} =~ /^ps/ ) {
+        print CGI::header(
+            -TYPE                => 'application/postscript',
+            -Content_Disposition => sprintf $cd,
+            'ps'
+        );
+    }
+    else {
+        print CGI::header(
+            -TYPE                => 'text/html',
+            -Content_Disposition => sprintf $cd,
+            'html'
+        );
+    }
 
     open $ofh, $outputFile;
     binmode $ofh;
