@@ -844,6 +844,7 @@ sub _getPrefs {
     use constant STRUCT       => 'book';
     use constant DEBUG        => 0;
     use constant COPYRIGHT    => '%WEBCOPYRIGHT%';
+    use constant CHARSET      => $Foswiki::cfg{Site}{CharSet};
 
     # copyright notice inserted into PDF Metadata
     $prefs{'copyright'} = $query->param('pdfcopyright');
@@ -854,6 +855,12 @@ sub _getPrefs {
             $prefs{'copyright'} = COPYRIGHT;
         }
     }
+
+    # Charset for htmldoc
+    $prefs{'charset'} =
+         $query->param('pdfcharset')
+      || Foswiki::Func::getPreferencesValue("GENPDFADDON_CHARSET")
+      || CHARSET;
 
     # Debugging:  Logs to data/debug.txt and preserves temporary files
     $prefs{'debug'} =
@@ -1304,6 +1311,7 @@ sub viewPDF {
 
     # Convert contentFile to PDF using HTMLDOC
     my @htmldocArgs;
+    push @htmldocArgs, "--charset", "$prefs{'charset'}";
     push @htmldocArgs, "--$prefs{'struct'}", "--quiet", "--links",
       "--linkstyle", "plain", "--outfile", "$outputFile", "--format",
       "$prefs{'format'}", "--$prefs{'orientation'}", "--size", "$prefs{'size'}",

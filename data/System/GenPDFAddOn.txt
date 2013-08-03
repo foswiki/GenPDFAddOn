@@ -60,6 +60,7 @@ _The HTMLDOC software and related variables, see the HTMLDOC documentation at ht
 | pdftitledoc | _TITLEDOC | | | The name of an attachment if specified ,becomes the title page. Allows images - see htmldoc manual |
 | skin | _SKIN | pattern | nat | Default skin to use for PDF generation |
 | cover | _COVER | print | print.nat | Default cover to use for PDF generation |
+| pdfcharset | _CHARSET | over-ride the Foswiki Site =CharSet=.|
 | rev | | | rev=10 | Generate a PDF from a prior topic revision. This disables =pdfrecursive= |
 | pdfrecursive | _RECURSIVE | | on | Include children of the base topic in the PDF |
 | pdfformat | _FORMAT | pdf14 | pdf12 | HTMLDOC output format |
@@ -279,7 +280,7 @@ $Foswiki::cfg{SwitchBoard}{genpdf} = {
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | |
-|  4 aUG 2013 | *Release 1.3* FoswikiTask:Item9984 - fix FastCGI operation. |
+|  4 Aug 2013 | *Release 1.3* FoswikiTask:Item9984 - fix FastCGI operation,  FoswikiTask:Item11843: GenPDFAddon utf-8 patch and  FoswikiTask:Item11013: GenPDFAddOn does not honor {Site}{CharSet}. |
 |  14 May 2010 | *Release 1.2* Foswikitask:Item9008 - Remove the X-Foswiki headers from the response. |
 |  9 Mar 2010 | *Release 1.1* Foswikitask:Item8586 - resolve packaging issue, Foswikitask:8575 - Add a "static" context to allow other plugins to recognize pdf output, Foswikitask:Item8691: Add support for heading and body fonts |
 |  6 Feb 2010 | Foswikitask:Item559 - Correct handing of embedded images, Foswikitask:Item1599 - Improve compatibility with EditTable, Foswikitask:Item2084 - Add support of topic revisions, Foswikitask:Item2435 - Correct DEPENDENCIES file, Foswikitask:Item2492 - support configurable image compression, Foswikitask:Item2592 - Correct issues with Examples, and handling of missing images, Foswikitask:Item2604 - Improve handling of TOC for recursive rendering, Foswikitask:Item8081 - Support passing %<nop>MACROS% in GENPDF settings, Foswikitask:Item8090 - Remove pdftoclevels from view.genpdf.tmpl, Foswikitask:Item8361 - Add support for TOC Title, and improve handling of HTML arrows.  Foswikitask:Item1174 - Initial release of !GenPDFPlugin helper |
