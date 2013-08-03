@@ -55,16 +55,10 @@ use strict;
 require Foswiki::Func;       # The plugins API
 require Foswiki::Plugins;    # For the API version
 
-# $VERSION is referred to by Foswiki, and is the only global variable that
-# *must* exist in this package.
-# This should always be $Rev: 1340 $ so that Foswiki can determine the checked-in
-# status of the plugin. It is used by the build automation tools, so
-# you should leave it alone.
-our $VERSION = '$Rev: 1340 $';
-
 # This is a free-form string you can use to "name" your own plugin version.
 # It is *not* used by the build automation tools, but is reported as part
 # of the version number in PLUGINDESCRIPTIONS.
+our $VERSION = '1.3';
 our $RELEASE = '1.3';
 
 # Short description of this plugin
